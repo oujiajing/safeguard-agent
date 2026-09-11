@@ -15,6 +15,7 @@ import com.safeguard.agent.rag.core.prompt.AgentPromptSlot;
 import com.safeguard.agent.rag.core.skill.AgentSkill;
 import com.safeguard.agent.rag.core.skill.AgentSkillRegistry;
 import com.safeguard.agent.rag.service.KnowledgeSearchFacade;
+import com.safeguard.agent.knowledge.service.KnowledgeDocumentService;
 import io.agentscope.core.tool.Toolkit;
 import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 public class AgentToolCatalog {
 
     private final KnowledgeSearchFacade knowledgeSearchFacade;
+    private final KnowledgeDocumentService knowledgeDocumentService;
     private final AgentConversationService conversationService;
     private final IntentNodeRegistry intentNodeRegistry;
     private final McpToolRegistry mcpToolRegistry;
@@ -66,6 +68,7 @@ public class AgentToolCatalog {
         Toolkit toolkit = new Toolkit();
         toolkit.registerAgentTool(new KnowledgeSearchTool(
                 catalog.knowledgeToolDescription, knowledgeSearchFacade, conversationService));
+        toolkit.registerAgentTool(new KnowledgeDocumentStatsTool(knowledgeDocumentService));
         if (catalog.memoryToolDescription != null) {
             toolkit.registerAgentTool(new MemoryFlushTool(catalog.memoryToolDescription, memoryPipeline));
         } else if (memoryProperties.isLongTermEnabled()) {

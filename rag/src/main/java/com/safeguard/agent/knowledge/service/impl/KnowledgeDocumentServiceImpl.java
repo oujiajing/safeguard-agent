@@ -61,6 +61,7 @@ import com.safeguard.agent.knowledge.schedule.CronScheduleHelper;
 import com.safeguard.agent.knowledge.service.KnowledgeChunkService;
 import com.safeguard.agent.knowledge.service.KnowledgeDocumentScheduleService;
 import com.safeguard.agent.knowledge.service.KnowledgeDocumentService;
+import com.safeguard.agent.knowledge.service.KnowledgeDocumentStats;
 import com.safeguard.agent.knowledge.support.IngestionSpecCodec;
 import com.safeguard.agent.knowledge.support.VectorTargetResolver;
 import com.safeguard.agent.rag.core.vector.VectorSpaceId;
@@ -91,6 +92,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
+
+    @Override
+    public KnowledgeDocumentStats stats() {
+        return documentMapper.selectStats();
+    }
 
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final KnowledgeDocumentMapper documentMapper;

@@ -18,6 +18,11 @@ import java.util.List;
 public interface KnowledgeDocumentService {
 
     /**
+     * 统计有效、启用、法规和逻辑删除文档数量。
+     */
+    KnowledgeDocumentStats stats();
+
+    /**
      * 上传文档
      *
      * @param kbId         知识库 ID

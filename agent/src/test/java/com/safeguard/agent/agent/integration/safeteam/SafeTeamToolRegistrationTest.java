@@ -47,12 +47,14 @@ class SafeTeamToolRegistrationTest {
         memory.setLongTermEnabled(false);
 
         AgentToolCatalog catalog = new AgentToolCatalog(
-                mock(KnowledgeSearchFacade.class), mock(AgentConversationService.class), intents,
+                mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
+                mock(AgentConversationService.class), intents,
                 registry, prompts, memory, mock(AgentMemoryPipeline.class), mock(AgentSkillRegistry.class));
         Toolkit toolkit = catalog.buildToolkit(catalog.resolve());
 
         assertThat(toolkit.getToolNames()).containsExactlyInAnyOrder(
-                "search_knowledge", "search_rectification_orders", "get_rectification_order",
+                "search_knowledge", "count_knowledge_documents", "search_rectification_orders", "get_rectification_order",
                 "create_rectification_order", "issue_rectification");
         assertThat(catalog.mcpToolCount()).isEqualTo(4);
     }

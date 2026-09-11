@@ -49,6 +49,7 @@ class AgentToolCatalogTest {
 
         AgentToolCatalog catalog = new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
@@ -61,7 +62,8 @@ class AgentToolCatalogTest {
         Toolkit toolkit = catalog.buildToolkit(resolved);
 
         assertThat(toolkit.getToolNames())
-                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME, "sales_query");
+                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME,
+                        KnowledgeDocumentStatsTool.TOOL_NAME, "sales_query");
         assertThat(toolkit.getTool(KnowledgeSearchTool.TOOL_NAME).getDescription())
                 .isEqualTo("当前 Agent 的知识库工具描述");
         assertThat(toolkit.getTool("sales_query").getDescription()).isEqualTo("查询实时销售数据");
@@ -107,7 +109,8 @@ class AgentToolCatalogTest {
         Toolkit toolkit = catalog.buildToolkit(resolved);
 
         assertThat(toolkit.getToolNames())
-                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME);
+                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME,
+                        KnowledgeDocumentStatsTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME);
         assertThat(toolkit.getTool(MemoryFlushTool.TOOL_NAME).getDescription())
                 .isEqualTo("需要记住或忘掉用户信息时调用");
         // 无参：给了参数就等于把内容写入权交给模型
@@ -129,7 +132,7 @@ class AgentToolCatalogTest {
         AgentToolCatalog.ResolvedCatalog resolved = catalog.resolve();
 
         assertThat(catalog.buildToolkit(resolved).getToolNames())
-                .containsExactly(KnowledgeSearchTool.TOOL_NAME);
+                .containsExactly(KnowledgeSearchTool.TOOL_NAME, KnowledgeDocumentStatsTool.TOOL_NAME);
         assertThat(resolved.fingerprint().memoryToolDescription()).isNull();
         assertThat(resolved.displayNameOf(MemoryFlushTool.TOOL_NAME)).isEqualTo(MemoryFlushTool.TOOL_NAME);
     }
@@ -195,6 +198,7 @@ class AgentToolCatalogTest {
 
         AgentToolCatalog catalog = new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
@@ -221,6 +225,7 @@ class AgentToolCatalogTest {
 
         return new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
