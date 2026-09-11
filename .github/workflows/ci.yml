@@ -1,0 +1,54 @@
+name: safeguard-standalone-ci
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: bash ./mvnw -DskipTests compile
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scan
+        shell: pwsh
+        run: ./scripts/security/scan-secrets.ps1
+
+  l2-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: L2 Mock and Demo Adapter tests
+        run: bash ./mvnw -pl rag,agent -am test '-Dtest=RetrievalEngineTest,DemoRectificationTaskCreatorTest,HazardAssessmentConfirmationTest,HazardAssessmentE2ETest' '-Dsurefire.failIfNoSpecifiedTests=false'

@@ -1,0 +1,61 @@
+target/
+temp
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+!.idea/dictionaries/
+!.idea/inspectionProfiles/
+!.idea/scopes/
+!.idea/icon.png
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+scripts/logs/
+
+### Frontend ###
+node_modules/
+dist/
+.vite/
+.env.local
+resources/docker/graphrag/.env
+
+### Local runtime and security-sensitive working artifacts ###
+.env
+!.env.example
+**/.env
+!**/.env.example
+*.log
+backups/
+.codex-run/
+**/__pycache__/
+*.py[cod]
+.output/
+
+### Tmp Out ###
+.output/
+docs/temp

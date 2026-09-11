@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: public-cloud
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${SAFEGUARD_NACOS_SERVER_ADDR:common-nacos-dev.magestack.cn:8848}
+
+  data:
+    redis:
+      host: ${SAFEGUARD_REDIS_HOST:common-redis-dev.magestack.cn}
+      port: ${SAFEGUARD_REDIS_PORT:19389}
+      password: ${SAFEGUARD_REDIS_PASSWORD:?set SAFEGUARD_REDIS_PASSWORD}
+
+rocketmq:
+  name-server: ${SAFEGUARD_ROCKETMQ_NAME_SERVER:common-rocketmq-dev.magestack.cn:9876}
+
+unique-name: ${SAFEGUARD_UNIQUE_NAME:-dingma23a45}
+
+framework:
+  cache:
+    redis:
+      prefix: "${SAFEGUARD_REDIS_PREFIX:dingma23a45:}"

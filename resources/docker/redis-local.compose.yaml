@@ -1,0 +1,19 @@
+name: safeguard-local-redis
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: safeguard-redis-dev
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${SAFEGUARD_REDIS_PASSWORD:?set SAFEGUARD_REDIS_PASSWORD}"]
+    ports:
+      - "${SAFEGUARD_REDIS_PORT:-6379}:6379"
+    volumes:
+      - safeguard-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${SAFEGUARD_REDIS_PASSWORD:?set SAFEGUARD_REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  safeguard-redis-data:

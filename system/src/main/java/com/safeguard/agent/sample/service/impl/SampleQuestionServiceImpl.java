@@ -1,0 +1,170 @@
+package com.safeguard.agent.sample.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mzt.logapi.starter.annotation.LogRecord;
+import com.safeguard.agent.audit.constant.BizChangeBizType;
+import com.safeguard.agent.audit.constant.BizChangeOperationType;
+import com.safeguard.agent.audit.support.BizChangeLogContext;
+import com.safeguard.agent.framework.exception.ClientException;
+import com.safeguard.agent.sample.controller.request.SampleQuestionCreateRequest;
+import com.safeguard.agent.sample.controller.request.SampleQuestionPageRequest;
+import com.safeguard.agent.sample.controller.request.SampleQuestionUpdateRequest;
+import com.safeguard.agent.sample.controller.vo.SampleQuestionVO;
+import com.safeguard.agent.sample.dao.entity.SampleQuestionDO;
+import com.safeguard.agent.sample.dao.mapper.SampleQuestionMapper;
+import com.safeguard.agent.sample.service.SampleQuestionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class SampleQuestionServiceImpl implements SampleQuestionService {
+
+    /** 随机取数的条数上限，防调用方要一个大数把整表捞走 */
+    private static final int MAX_LIMIT = 20;
+
+    private final SampleQuestionMapper sampleQuestionMapper;
+    private final BizChangeLogContext bizChangeLogContext;
+
+    @Override
+    @LogRecord(
+            success = "创建示例问题：{{#requestParam.question}}",
+            fail = "创建示例问题失败：{{#_errorMsg}}",
+            type = BizChangeBizType.SAMPLE_QUESTION,
+            subType = BizChangeOperationType.CREATE,
+            bizNo = BizChangeLogContext.BIZ_ID_EXPRESSION,
+            extra = BizChangeLogContext.SNAPSHOT_EXPRESSION,
+            condition = BizChangeLogContext.RECORD_CONDITION
+    )
+    public String create(SampleQuestionCreateRequest requestParam) {
+        Assert.notNull(requestParam, () -> new ClientException("请求不能为空"));
+        String question = StrUtil.trimToNull(requestParam.getQuestion());
+        Assert.notBlank(question, () -> new ClientException("示例问题内容不能为空"));
+
+        SampleQuestionDO record = SampleQuestionDO.builder()
+                .title(StrUtil.trimToNull(requestParam.getTitle()))
+                .description(StrUtil.trimToNull(requestParam.getDescription()))
+                .question(question)
+                .build();
+        sampleQuestionMapper.insert(record);
+        bizChangeLogContext.put(String.valueOf(record.getId()), null, record);
+        return String.valueOf(record.getId());
+    }
+
+    @Override
+    @LogRecord(
+            success = "更新示例问题：{{#id}}",
+            fail = "更新示例问题失败：{{#_errorMsg}}",
+            type = BizChangeBizType.SAMPLE_QUESTION,
+            subType = BizChangeOperationType.UPDATE,
+            bizNo = "{{#id}}",
+            extra = BizChangeLogContext.SNAPSHOT_EXPRESSION,
+            condition = BizChangeLogContext.RECORD_CONDITION
+    )
+    public void update(String id, SampleQuestionUpdateRequest requestParam) {
+        Assert.notNull(requestParam, () -> new ClientException("请求不能为空"));
+        SampleQuestionDO record = loadById(id);
+        SampleQuestionDO before = BeanUtil.copyProperties(record, SampleQuestionDO.class);
+
+        if (requestParam.getQuestion() != null) {
+            String question = StrUtil.trimToNull(requestParam.getQuestion());
+            Assert.notBlank(question, () -> new ClientException("示例问题内容不能为空"));
+            record.setQuestion(question);
+        }
+        if (requestParam.getTitle() != null) {
+            record.setTitle(StrUtil.trimToNull(requestParam.getTitle()));
+        }
+        if (requestParam.getDescription() != null) {
+            record.setDescription(StrUtil.trimToNull(requestParam.getDescription()));
+        }
+
+        sampleQuestionMapper.updateById(record);
+        bizChangeLogContext.put(id, before, sampleQuestionMapper.selectById(id));
+    }
+
+    @Override
+    @LogRecord(
+            success = "删除示例问题：{{#id}}",
+            fail = "删除示例问题失败：{{#_errorMsg}}",
+            type = BizChangeBizType.SAMPLE_QUESTION,
+            subType = BizChangeOperationType.DELETE,
+            bizNo = "{{#id}}",
+            extra = BizChangeLogContext.SNAPSHOT_EXPRESSION,
+            condition = BizChangeLogContext.RECORD_CONDITION
+    )
+    public void delete(String id) {
+        SampleQuestionDO record = loadById(id);
+        SampleQuestionDO before = BeanUtil.copyProperties(record, SampleQuestionDO.class);
+        sampleQuestionMapper.deleteById(record.getId());
+        bizChangeLogContext.put(id, before, null);
+    }
+
+    @Override
+    public SampleQuestionVO queryById(String id) {
+        SampleQuestionDO record = loadById(id);
+        return toVO(record);
+    }
+
+    @Override
+    public IPage<SampleQuestionVO> pageQuery(SampleQuestionPageRequest requestParam) {
+        String keyword = StrUtil.trimToNull(requestParam.getKeyword());
+        Page<SampleQuestionDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        IPage<SampleQuestionDO> result = sampleQuestionMapper.selectPage(
+                page,
+                Wrappers.lambdaQuery(SampleQuestionDO.class)
+                        .eq(SampleQuestionDO::getDeleted, 0)
+                        .and(StrUtil.isNotBlank(keyword), wrapper -> wrapper
+                                .like(SampleQuestionDO::getTitle, keyword)
+                                .or()
+                                .like(SampleQuestionDO::getDescription, keyword)
+                                .or()
+                                .like(SampleQuestionDO::getQuestion, keyword))
+                        .orderByDesc(SampleQuestionDO::getUpdateTime)
+        );
+        return result.convert(this::toVO);
+    }
+
+    @Override
+    public List<SampleQuestionVO> listRandomQuestions(int limit) {
+        int size = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        List<SampleQuestionDO> records = sampleQuestionMapper.selectList(
+                Wrappers.lambdaQuery(SampleQuestionDO.class)
+                        .eq(SampleQuestionDO::getDeleted, 0)
+                        .last("ORDER BY RANDOM() LIMIT " + size)
+        );
+        if (records == null || records.isEmpty()) {
+            return List.of();
+        }
+        return records.stream()
+                .map(this::toVO)
+                .toList();
+    }
+
+    private SampleQuestionDO loadById(String id) {
+        SampleQuestionDO record = sampleQuestionMapper.selectOne(
+                Wrappers.lambdaQuery(SampleQuestionDO.class)
+                        .eq(SampleQuestionDO::getId, id)
+                        .eq(SampleQuestionDO::getDeleted, 0)
+        );
+        Assert.notNull(record, () -> new ClientException("示例问题不存在"));
+        return record;
+    }
+
+    private SampleQuestionVO toVO(SampleQuestionDO record) {
+        return SampleQuestionVO.builder()
+                .id(String.valueOf(record.getId()))
+                .title(record.getTitle())
+                .description(record.getDescription())
+                .question(record.getQuestion())
+                .createTime(record.getCreateTime())
+                .updateTime(record.getUpdateTime())
+                .build();
+    }
+}
