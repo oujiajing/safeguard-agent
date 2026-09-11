@@ -179,7 +179,7 @@ function replayElapsed(userTime?: string, assistantTime?: string): number | unde
   return end - start;
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "/api/safeguard-agent").replace(/\/$/, "");
 
 export const useAgentChatStore = create<AgentChatState>((set, get) => {
   // 文本增量按块规则落位：敞开块同类则追加 否则封口旧块并新开

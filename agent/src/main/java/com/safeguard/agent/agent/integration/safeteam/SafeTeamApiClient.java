@@ -94,10 +94,10 @@ public class SafeTeamApiClient {
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(normalizedBaseUrl() + path))
                         .timeout(Duration.ofMillis(properties.getRequestTimeoutMs()))
-                        .header("Accept", "application/json")
-                        .header(context == null ? "Authorization" : "X-Safeguard-Service-Token", token);
+                        .header("Accept", "application/json");
                 if (context != null) {
-                    builder.header("X-Safeguard-Actor-User-Id", String.valueOf(context.actorUserId()))
+                    builder.header("X-Safeguard-Service-Token", token)
+                            .header("X-Safeguard-Actor-User-Id", String.valueOf(context.actorUserId()))
                             .header("X-Safeguard-Trace-Id", context.traceId())
                             .header("X-Safeguard-Source-Hazard-Id", context.sourceHazardId());
                 } else {
