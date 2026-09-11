@@ -14,7 +14,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 class SafeTeamLiveIntegrationTest {
     @Test
     @EnabledIfEnvironmentVariable(named = "SAFE_TEAM_LIVE", matches = "true")
-    void compiledRagentToolCallsRunningSafeTeam() {
+    void compiledSafeGuardToolCallsRunningSafeTeam() {
         SafeTeamIntegrationProperties properties = new SafeTeamIntegrationProperties();
         properties.setBaseUrl(System.getenv().getOrDefault("SAFE_TEAM_BASE_URL", "http://localhost:8080"));
         properties.setDevToken(System.getenv("SAFE_TEAM_DEV_TOKEN"));

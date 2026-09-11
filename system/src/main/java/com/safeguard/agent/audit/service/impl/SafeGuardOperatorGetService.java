@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class RagentOperatorGetService implements IOperatorGetService {
+public class SafeGuardOperatorGetService implements IOperatorGetService {
 
     private static final String SYSTEM_OPERATOR = "SYSTEM";
 

@@ -223,7 +223,7 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Ragent 与 MCP SDK 仍使用 Jackson 2 API；Boot 4 默认 Jackson 3，迁移期间启用官方兼容模块。 -->
+        <!-- SafeGuard Agent 与 MCP SDK 仍使用 Jackson 2 API；Boot 4 默认 Jackson 3，迁移期间启用兼容模块。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-jackson2</artifactId>

@@ -2,7 +2,7 @@ package com.safeguard.agent.legal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.safeguard.agent.TestRagentApplication;
+import com.safeguard.agent.TestSafeGuardApplication;
 import com.safeguard.agent.legal.batch.LegalPdfBatchImportJob;
 import com.safeguard.agent.legal.batch.LegalPdfBatchImportResult;
 import com.safeguard.agent.legal.persistence.LegalCorpusPersistenceService;
@@ -21,7 +21,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Explicit opt-in production replay for validated MinerU result.zip caches. */
-@SpringBootTest(classes = TestRagentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = TestSafeGuardApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @TestPropertySource(properties = "rag.image-parse.embedded-describe-enabled=false")
 @EnabledIfSystemProperty(named = "legal.pdf.cached.persist", matches = "true")
 class LegalPdfCachedProductionReimportTest {

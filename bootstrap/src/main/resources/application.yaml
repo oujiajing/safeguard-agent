@@ -24,7 +24,7 @@ spring:
       max-lifetime: 1800000
       maximum-pool-size: 10
       minimum-idle: 5
-      pool-name: RagentHikariPool
+      pool-name: SafeGuardHikariPool
 
   data:
     redis:

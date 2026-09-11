@@ -1,6 +1,6 @@
 package com.safeguard.agent.legal;
 
-import com.safeguard.agent.TestRagentApplication;
+import com.safeguard.agent.TestSafeGuardApplication;
 import com.safeguard.agent.legal.batch.LegalPdfBatchImportJob;
 import com.safeguard.agent.legal.batch.LegalPdfBatchImportResult;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Explicit opt-in destructive integration test: persists and indexes the configured PDF corpus. */
-@SpringBootTest(classes = TestRagentApplication.class, webEnvironment = WebEnvironment.NONE)
+@SpringBootTest(classes = TestSafeGuardApplication.class, webEnvironment = WebEnvironment.NONE)
 @EnabledIfSystemProperty(named = "legal.pdf.persist", matches = "true")
 class LegalPdfBatchImportPersistenceTest {
 

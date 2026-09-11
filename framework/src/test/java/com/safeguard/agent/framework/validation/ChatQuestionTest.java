@@ -29,7 +29,7 @@ class ChatQuestionTest {
 
     @Test
     void shouldAcceptOrdinaryQuestion() {
-        assertThat(violations("Ragent 的检索链路是怎么排的")).isEmpty();
+        assertThat(violations("SafeGuard Agent 的检索链路是怎么排的")).isEmpty();
     }
 
     private List<String> violations(String question) {

@@ -1,6 +1,6 @@
 package com.safeguard.agent.legal;
 
-import com.safeguard.agent.TestRagentApplication;
+import com.safeguard.agent.TestSafeGuardApplication;
 import com.safeguard.agent.legal.ingest.LegalPdfImportService;
 import com.safeguard.agent.core.parser.mineru.MinerUDocumentParser;
 import com.safeguard.agent.core.parser.model.ParsedDocument;
@@ -25,7 +25,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = TestRagentApplication.class, webEnvironment = WebEnvironment.NONE)
+@SpringBootTest(classes = TestSafeGuardApplication.class, webEnvironment = WebEnvironment.NONE)
 @EnabledIfSystemProperty(named = "legal.pdf.dir", matches = ".+")
 class LegalPdfCorpusDryRunTest {
 

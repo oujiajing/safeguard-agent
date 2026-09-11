@@ -50,7 +50,7 @@ class ReActAgentProviderTest {
         intentNodeRegistry = mock(IntentNodeRegistry.class);
         mcpToolRegistry = mock(McpToolRegistry.class);
         agentPromptResolver = mock(AgentPromptResolver.class);
-        when(agentPromptResolver.resolve(AgentPromptSlot.AGENT_MAIN)).thenReturn("你是 Ragent");
+        when(agentPromptResolver.resolve(AgentPromptSlot.AGENT_MAIN)).thenReturn("你是 SafeGuard Agent");
         when(agentPromptResolver.resolve(AgentPromptSlot.KNOWLEDGE_TOOL_DESCRIPTION))
                 .thenReturn("当前 Agent 的知识库工具描述");
         when(intentNodeRegistry.listMcpToolNodes()).thenReturn(List.of(

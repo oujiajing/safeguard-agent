@@ -95,7 +95,7 @@ public class MilvusCollectionTests {
                 .vectorFieldName("embedding")
                 .consistencyLevel(ConsistencyLevel.BOUNDED)
                 .indexParams(List.of(hnswIndex))
-                .description("Ragent 知识库向量集合")
+                .description("SafeGuard Agent 知识库向量集合")
                 .build();
 
         milvusClient.createCollection(createReq);
