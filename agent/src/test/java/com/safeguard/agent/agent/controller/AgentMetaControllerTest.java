@@ -30,7 +30,8 @@ class AgentMetaControllerTest {
         AgentMetaVO meta = controller.meta().getData();
 
         // 能力清单说有、mcpConfigured 说没有，两个字段各说各话
-        assertThat(meta.capabilities()).containsExactly("react", "knowledge-base");
+        assertThat(meta.capabilities()).containsExactly(
+                "react", "knowledge-base", "safety-assessment", "image-input", "human-confirmation");
         assertThat(meta.mcpConfigured()).isFalse();
     }
 
@@ -40,7 +41,8 @@ class AgentMetaControllerTest {
 
         AgentMetaVO meta = controller.meta().getData();
 
-        assertThat(meta.capabilities()).containsExactly("react", "knowledge-base", "mcp-tools");
+        assertThat(meta.capabilities()).containsExactly(
+                "react", "knowledge-base", "safety-assessment", "image-input", "human-confirmation", "mcp-tools");
         assertThat(meta.mcpConfigured()).isTrue();
     }
 }

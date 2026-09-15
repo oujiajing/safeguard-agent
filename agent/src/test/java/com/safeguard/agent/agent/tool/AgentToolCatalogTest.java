@@ -13,6 +13,7 @@ import com.safeguard.agent.rag.core.prompt.AgentPromptSlot;
 import com.safeguard.agent.rag.core.skill.AgentSkillRegistry;
 import com.safeguard.agent.rag.enums.IntentKind;
 import com.safeguard.agent.rag.service.KnowledgeSearchFacade;
+import com.safeguard.agent.agent.integration.safeteam.SafeTeamIntegrationProperties;
 import io.agentscope.core.permission.PermissionBehavior;
 import io.agentscope.core.tool.ToolBase;
 import io.agentscope.core.tool.Toolkit;
@@ -87,6 +88,31 @@ class AgentToolCatalogTest {
         assertThat(toolkit.getTool("blank_hint_query").isReadOnly()).isFalse();
         // 知识库工具的只读是真的，不随 MCP 透传变化
         assertThat(toolkit.getTool(KnowledgeSearchTool.TOOL_NAME).isReadOnly()).isTrue();
+    }
+
+    @Test
+    void hidesLegacySafeTeamWriteToolsWhenNaturalLanguageWritesAreDisabled() {
+        IntentNodeRegistry intents = mock(IntentNodeRegistry.class);
+        McpToolRegistry registry = mock(McpToolRegistry.class);
+        List<McpToolExecutor> executors = List.of(
+                executor("search_rectification_orders", "查询工单", readOnlyHint(true)),
+                executor("create_rectification_order", "创建工单", readOnlyHint(false)),
+                executor("issue_rectification", "下发工单", readOnlyHint(false)));
+        when(intents.listMcpToolNodes()).thenReturn(executors.stream()
+                .map(executor -> mcpNode(executor.getToolId(), executor.getToolId(), "工具", executor.getToolId()))
+                .toList());
+        when(registry.listAllExecutors()).thenReturn(executors);
+        AgentPromptResolver prompts = mock(AgentPromptResolver.class);
+        when(prompts.resolve(AgentPromptSlot.KNOWLEDGE_TOOL_DESCRIPTION)).thenReturn("知识库工具");
+        AgentToolCatalog catalog = new AgentToolCatalog(mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
+                mock(AgentConversationService.class), intents, registry, prompts, memoryProperties(false),
+                mock(AgentMemoryPipeline.class), mock(AgentSkillRegistry.class));
+        catalog.setSafeTeamProperties(new SafeTeamIntegrationProperties());
+
+        assertThat(catalog.buildToolkit(catalog.resolve()).getToolNames())
+                .contains("search_rectification_orders")
+                .doesNotContain("create_rectification_order", "issue_rectification");
     }
 
     @Test

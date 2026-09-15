@@ -1,0 +1,50 @@
+version: 2
+status: reviewed_no_images_imported
+reviewed_on: 2026-09-15
+policy: "A real image is importable only when this catalog marks its source approved and a per-image provenance/de-identification record is present."
+sources:
+  - id: hf-construction-safety-object-detection
+    url: https://huggingface.co/datasets/keremberke/construction-safety-object-detection
+    license_reported: CC-BY-4.0
+    dataset_card_evidence: "HF card: 398 images, Roboflow citation, CC BY 4.0; exported 2022-12-29."
+    exact_revision: unresolved_before_download
+    attribution_required: "Roboflow Universe Projects / Construction Site Safety Dataset citation from the dataset card."
+    review_status: blocked_pending_image_level_provenance_and_deidentification_review
+    coverage: [hardhat, no-hardhat, safety-vest, no-safety-vest, safety-net, machinery]
+    import_gate: "Pin exact revision at download; retain CC BY attribution; review each selected image for faces, badges, plates and company marks; record image-level provenance before import."
+    approved_subset:
+      - id: real-keremberke-wheel-loader-no-person
+        revision: a19eace121442bce60da9f5036dc16bf9f2f6fa6
+        source_sample_id: 15
+        source_filename: "construction-823-_jpg.rf.67b2bbd92d1b54bbe2793211afde926e.jpg"
+        artifact: "real/keremberke-valid-mini-a19eace/real-raw-wheel-loader-no-person.jpg"
+        sha256: D1F4078D86B767D253BF88C728FC6AFA674741CFAD953388259CDD135F9AF060
+        status: approved_original_no_personal_identifier
+        label: "No PPE hazard expected; use only for forbidden-hallucination calibration and do not score equipment branding."
+  - id: gts-worksite-safety-monitoring
+    url: https://gts.ai/dataset-download/worksite-safety-monitoring-dataset/
+    license_reported: MIT
+    dataset_card_evidence: "Public download page states MIT with attribution, but no versioned data card was captured."
+    exact_revision: unavailable
+    attribution_required: unresolved
+    review_status: blocked_pending_terms_snapshot_version_and_provenance
+    coverage: [helmet, reflective-vest, safe-unsafe-classification]
+    import_gate: "At download preserve terms/license, dataset version and publisher attribution; obtain image-provenance and de-identification evidence before import."
+  - id: hf-constructionsite-10k
+    url: https://huggingface.co/datasets/LouisChen15/ConstructionSite
+    license_reported: CC-BY-NC-4.0
+    dataset_card_evidence: "HF card: 10,013 MOCS-sourced images, gated access requiring contact-information agreement, with VQA/reasoning/bounding-box annotations."
+    exact_revision: inaccessible_until_access_conditions_accepted
+    attribution_required: "Chen and Zou, ConstructionSite 10k citation; verify the upstream MOCS license separately."
+    review_status: blocked_noncommercial_license_gated_access_and_upstream_license
+    coverage: [ppe, harness, edge-protection, excavator-blind-spot, vqa-reasoning, bounding-box]
+    import_gate: "Do not accept gated conditions or download without explicit approval; CC BY-NC excludes commercial evaluation, and upstream MOCS rights plus de-identification must be cleared."
+  - id: shwd-safety-helmet-wearing
+    url: https://github.com/njvisionpower/Safety-Helmet-Wearing-Dataset
+    license_reported: MIT-repository
+    dataset_card_evidence: "README: 7,581 images; positives from Google/Baidu and some negatives from SCUT-HEAD."
+    exact_revision: master_unpinned
+    attribution_required: "Repository MIT notice is insufficient for aggregated upstream images."
+    review_status: rejected_for_real_validation_until_upstream_rights_are_proven
+    coverage: [hardhat, no-hardhat]
+    import_gate: "Do not download/import for evaluation: verify Google/Baidu image licenses and SCUT-HEAD terms at image level first; only then perform de-identification review."

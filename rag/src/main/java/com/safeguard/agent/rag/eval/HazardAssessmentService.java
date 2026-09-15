@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class HazardAssessmentService {
-    private static final String CREATE_TOOL = "create_rectification_order";
 
     private final LegalAnswerService legalAnswerService;
     private final LLMService llmService;
@@ -150,7 +149,8 @@ public class HazardAssessmentService {
     }
 
     private HazardAssessmentResult.Action proposal() {
-        return new HazardAssessmentResult.Action(true, true, CREATE_TOOL, "CONFIRMATION_REQUIRED");
+        // An assessment is evidence and a proposal only. It is not user authorization to write.
+        return new HazardAssessmentResult.Action(false, false, null, "ASSESSMENT_ONLY");
     }
 
     private String classify(String hazard) {

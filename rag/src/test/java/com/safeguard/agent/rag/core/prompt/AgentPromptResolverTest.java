@@ -106,6 +106,19 @@ class AgentPromptResolverTest {
         assertEquals("", resolver.resolve(AgentPromptSlot.KB_ANSWER));
     }
 
+    @Test
+    void appendsMandatoryWriteSafetyRulesToAgentPersona() {
+        stubProfiles(profile(BUILTIN_ID, 1, 0), null);
+        stubPromptCalls(List.of(prompt(BUILTIN_ID, AgentPromptSlot.AGENT_MAIN, "基础人设")));
+
+        String resolved = resolver.resolve(AgentPromptSlot.AGENT_MAIN);
+
+        org.junit.jupiter.api.Assertions.assertTrue(resolved.contains("# 写入安全硬规则"));
+        org.junit.jupiter.api.Assertions.assertTrue(resolved.contains("不要创建"));
+        org.junit.jupiter.api.Assertions.assertTrue(resolved.contains("action/proposal"));
+        org.junit.jupiter.api.Assertions.assertTrue(resolved.contains("create_task"));
+    }
+
     // === 桩数据 ===
 
     /**

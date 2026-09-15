@@ -25,6 +25,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AgentPromptResolver {
 
+    private static final String MANDATORY_AGENT_SAFETY_RULES = """
+
+            # 写入安全硬规则
+            - 评估结果中的 action/proposal 只是说明系统具备后续能力，不代表用户已经授权，也不是下一步指令。
+            - 用户说“不要创建”“不需要下发”“无需执行”“仅评估”“只查询”等否定表达时，绝不调用任何创建、下发、提交、变更或执行工具，也不要弹出确认卡。
+            - 只有用户明确提出创建、下发、提交或执行，并且必要参数已经确认时，才可以提出写操作；否则只回答评估结果或追问缺失信息。
+            - 涉及施工隐患时，优先使用基于 assessmentId 的专用整改工具；创建工单只收集公司、部门、班组中文名称，由系统向 Safe-team 解析内部标识，不要向用户索要或臆造 ID。
+            - 严禁调用不存在的 create_task、create_rectification_order 或 issue_rectification；创建整改工单只能调用 create_rectification_from_assessment，且必须先展示确认卡。
+            """;
+
     private final AgentProfileMapper agentProfileMapper;
     private final AgentPromptMapper agentPromptMapper;
     private final AgentPromptCacheManager cacheManager;
@@ -36,7 +46,12 @@ public class AgentPromptResolver {
         if (slot == null) {
             return "";
         }
-        return StrUtil.emptyIfNull(resolveAll().get(slot.name()));
+        String content = StrUtil.emptyIfNull(resolveAll().get(slot.name()));
+        if (slot == AgentPromptSlot.AGENT_MAIN && StrUtil.isNotBlank(content)
+                && !content.contains("# 写入安全硬规则")) {
+            return content + MANDATORY_AGENT_SAFETY_RULES;
+        }
+        return content;
     }
 
     /**

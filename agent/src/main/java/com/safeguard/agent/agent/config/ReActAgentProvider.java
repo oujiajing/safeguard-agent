@@ -2,6 +2,7 @@ package com.safeguard.agent.agent.config;
 
 import cn.hutool.core.util.StrUtil;
 import com.safeguard.agent.agent.confirm.AgentConfirmDenialMiddleware;
+import com.safeguard.agent.agent.confirm.AgentWriteIntentGuardMiddleware;
 import com.safeguard.agent.agent.memory.AgentContextCompactionMiddleware;
 import com.safeguard.agent.agent.memory.AgentUserMemoryMiddleware;
 import com.safeguard.agent.agent.skill.AgentSkillMaskingMiddleware;
@@ -14,6 +15,7 @@ import io.agentscope.core.ReActAgent;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,6 +38,12 @@ public class ReActAgentProvider {
     private final AgentUserMemoryMiddleware userMemoryMiddleware;
     private final AgentContextCompactionMiddleware contextCompactionMiddleware;
     private final AgentConfirmDenialMiddleware confirmDenialMiddleware;
+    private AgentWriteIntentGuardMiddleware writeIntentGuardMiddleware = new AgentWriteIntentGuardMiddleware();
+
+    @Autowired(required = false)
+    void setWriteIntentGuardMiddleware(AgentWriteIntentGuardMiddleware middleware) {
+        this.writeIntentGuardMiddleware = middleware;
+    }
     private final AgentSkillMaskingMiddleware skillMaskingMiddleware;
 
     private volatile CachedAgent cached;
@@ -98,6 +106,7 @@ public class ReActAgentProvider {
                 .middleware(contextCompactionMiddleware)
                 // 排在压缩之后：被压进摘要的那条拒绝结果已经不在列表里，改写自然跳过
                 .middleware(confirmDenialMiddleware)
+                .middleware(writeIntentGuardMiddleware)
                 // 最内层：手册被压缩带走后遮蔽跟着复位，工具与手册同进同出
                 .middleware(skillMaskingMiddleware)
                 .build();

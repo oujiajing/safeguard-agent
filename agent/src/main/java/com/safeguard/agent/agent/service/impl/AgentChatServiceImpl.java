@@ -3,6 +3,7 @@ package com.safeguard.agent.agent.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.safeguard.agent.agent.config.ConditionalOnAgentEngine;
+import com.safeguard.agent.agent.attachment.AgentImageAttachmentService;
 import com.safeguard.agent.agent.config.ReActAgentProvider;
 import com.safeguard.agent.agent.config.ReActAgentProvider.ActiveAgent;
 import com.safeguard.agent.agent.dto.AgentConfirmSettlement;
@@ -34,6 +35,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -61,8 +63,20 @@ public class AgentChatServiceImpl implements AgentChatService {
     private final AgentMemoryProperties memoryProperties;
     private final AgentMemoryPipeline memoryPipeline;
 
+    private AgentImageAttachmentService imageAttachmentService;
+
+    @Autowired(required = false)
+    void setImageAttachmentService(AgentImageAttachmentService imageAttachmentService) {
+        this.imageAttachmentService = imageAttachmentService;
+    }
+
     @Override
     public void streamChat(String question, String conversationId, SseEmitter emitter) {
+        streamChat(question, conversationId, null, emitter);
+    }
+
+    @Override
+    public void streamChat(String question, String conversationId, String imageAttachmentId, SseEmitter emitter) {
         String userId = UserContext.getUserId();
         String actualConversationId = StrUtil.isBlank(conversationId)
                 ? IdUtil.getSnowflakeNextIdStr()
@@ -74,8 +88,20 @@ public class AgentChatServiceImpl implements AgentChatService {
         }
         String taskId = IdUtil.getSnowflakeNextIdStr();
 
+        String modelQuestion = question;
+        if (StrUtil.isNotBlank(imageAttachmentId)) {
+            if (imageAttachmentService == null) {
+                throw new ClientException("图片附件能力未启用");
+            }
+            imageAttachmentService.requireOwned(imageAttachmentId, userId);
+            modelQuestion = question + "\n\n系统附件上下文：本轮包含一张已验证归属的图片，attachment_id="
+                    + imageAttachmentId + "。需要读取图片时调用 analyze_visual_hazard，不要猜测图片内容。";
+        }
+        String preparedQuestion = modelQuestion;
+
         guardedStart(userId, actualConversationId, taskId,
-                releaseGate -> startRun(question, userId, actualConversationId, taskId, emitter, releaseGate));
+                releaseGate -> startRun(question, preparedQuestion, userId, actualConversationId, taskId, emitter,
+                        releaseGate));
     }
 
     @Override
@@ -107,7 +133,7 @@ public class AgentChatServiceImpl implements AgentChatService {
         }
     }
 
-    private void startRun(String question, String userId, String conversationId, String taskId,
+    private void startRun(String question, String modelQuestion, String userId, String conversationId, String taskId,
                           SseEmitter emitter, Runnable releaseGate) {
         SseEmitterSender sender = new SseEmitterSender(emitter);
         sender.sendEvent(AgentSSEEventType.META.value(), new AgentMetaPayload(conversationId, taskId));
@@ -119,7 +145,7 @@ public class AgentChatServiceImpl implements AgentChatService {
         }
         String questionMessageId = conversationService.addUserMessage(conversationId, userId, question);
 
-        launchStream(new UserMessage(question), agentProvider.getAgent(), RunScope.builder()
+        launchStream(new UserMessage(modelQuestion), agentProvider.getAgent(), RunScope.builder()
                 .sender(sender)
                 .emitter(emitter)
                 .userId(userId)

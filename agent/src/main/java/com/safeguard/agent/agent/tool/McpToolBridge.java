@@ -3,6 +3,7 @@ package com.safeguard.agent.agent.tool;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.safeguard.agent.agent.skill.AgentSkillMaskingMiddleware;
+import com.safeguard.agent.agent.confirm.AgentWriteIntentGuardMiddleware;
 import com.safeguard.agent.agent.tool.AgentToolCatalog.McpToolBinding;
 import com.safeguard.agent.rag.core.mcp.McpToolExecutor;
 import io.agentscope.core.agent.RuntimeContext;
@@ -77,6 +78,10 @@ public class McpToolBridge extends ToolBase {
 
     @Override
     public Mono<ToolResultBlock> callAsync(ToolCallParam param) {
+        if (!isReadOnly() && AgentWriteIntentGuardMiddleware.isWriteBlocked(
+                param == null ? null : param.getRuntimeContext())) {
+            return Mono.just(buildResult(toolCallId(param), "用户已明确要求仅评估/查询，本次写操作未执行", true));
+        }
         String maskedBy = maskedBySkill(param);
         if (maskedBy != null) {
             log.info("技能未加载, 拒绝直接调用, toolId: {}, skillCode: {}", getName(), maskedBy);

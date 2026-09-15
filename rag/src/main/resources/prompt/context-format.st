@@ -50,6 +50,9 @@
 <questions>
 {questions}
 </questions>
+<answer-requirements>
+必须按问题编号逐项回答，不能合并、跳过或只回答其中一部分；每个问题都要给出结论，证据不足时明确说明“知识库未找到充分依据”。
+</answer-requirements>
 
 --- section: kb-evidence ---
 <documents>

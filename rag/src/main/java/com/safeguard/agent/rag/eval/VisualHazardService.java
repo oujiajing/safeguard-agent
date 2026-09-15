@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class VisualHazardService {
-    private static final String SYSTEM_PROMPT = "只输出一个JSON对象，不要Markdown。字段：scene:string，hazardCandidates:array。每个候选字段：candidateId不要输出、hazardType:string、operationObject:string、description:string、visibleEvidence:array of strings、potentialRisk:string、judgement只能CONFIRMED/SUSPECTED/UNKNOWN、confidence:number 0到1、needsManualVerification:boolean。只写图片可观察事实；用户文字只能保留为userProvidedContext，不能写入visibleEvidence。无法由图片确认的尺寸、证件、检测值、荷载、接地电阻只能UNKNOWN或SUSPECTED，needsManualVerification=true。不得生成法规、整改任务、责任人或期限。";
+    private static final String SYSTEM_PROMPT = "只输出一个JSON对象，不要Markdown。字段：scene:string，hazardCandidates:array。每个候选字段：candidateId不要输出、hazardType:string、operationObject:string、description:string、visibleEvidence:array of strings、potentialRisk:string、judgement只能CONFIRMED/SUSPECTED/UNKNOWN、confidence:number 0到1、needsManualVerification:boolean。只写图片可观察事实；用户文字只能保留为userProvidedContext，不能写入visibleEvidence。对每个可见人员必须逐项检查：安全帽是否佩戴、可见安全带是否系挂、反光背心/防护服是否穿戴；对每个临边、洞口、楼梯口必须检查是否有可见护栏、盖板或警戒。安全带规则：只有在画面清晰可见安全带本体、挂点或错误系挂状态时，才可输出安全带候选；仅仅“未见安全带”绝不允许输出“未佩戴安全带”或“高处作业无防护”。同理不要推断尺寸、证件、检测值、荷载、接地电阻。无法确认时只能UNKNOWN或SUSPECTED，needsManualVerification=true。不得生成法规、整改任务、责任人或期限。";
 
     private final VisualHazardProperties properties;
     private final ObjectMapper mapper;
@@ -108,6 +108,9 @@ public class VisualHazardService {
                 List<String> evidence = new ArrayList<>();
                 if (!item.path("visibleEvidence").isArray()) throw new IllegalArgumentException("visibleEvidence 必须是数组");
                 item.path("visibleEvidence").forEach(node -> { if (node.isTextual()) evidence.add(node.asText()); });
+                if (isUnsupportedHarnessAbsence(item.path("hazardType").asText(), item.path("description").asText(), evidence)) {
+                    continue;
+                }
                 double confidence = Math.max(0, Math.min(1, item.path("confidence").asDouble(0)));
                 boolean manual = item.path("needsManualVerification").asBoolean(true) || !"CONFIRMED".equals(judgement);
                 candidates.add(new VisualHazardContext.Candidate(UUID.randomUUID().toString(), item.path("hazardType").asText("UNKNOWN"), item.path("operationObject").asText("UNKNOWN"), item.path("description").asText("UNKNOWN"), evidence, item.path("potentialRisk").asText("UNKNOWN"), judgement, confidence, manual));
@@ -116,6 +119,15 @@ public class VisualHazardService {
         } catch (Exception exception) {
             throw new IllegalArgumentException("VLM结构化输出不合法", exception);
         }
+    }
+
+    static boolean isUnsupportedHarnessAbsence(String hazardType, String description, List<String> evidence) {
+        List<String> facts = new ArrayList<>();
+        facts.add(hazardType == null ? "" : hazardType);
+        facts.add(description == null ? "" : description);
+        if (evidence != null) facts.addAll(evidence);
+        String all = String.join(" ", facts);
+        return all.contains("安全带") && (all.contains("未见") || all.contains("未看到") || all.contains("没有看到"));
     }
 
     public record VisualConfirmationResult(String analysisId, List<HazardAssessmentResult> assessments, String status) {}

@@ -512,9 +512,11 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
 
   const summary = failed ? errorSummary(raw) : summarize(parsed, raw);
   const full = parsed != null ? stringify(parsed) : raw;
+  const safetyTool = !failed ? safetyToolView(block.name, parsed) : null;
 
   return (
     <div className="agent-toolbox">
+      {safetyTool}
       <button
         type="button"
         className="agent-tool-summary"
@@ -529,6 +531,61 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
       {open ? <pre className="agent-pre">{full || "（空返回）"}</pre> : null}
     </div>
   );
+}
+
+/** 领域工具只在结果区增强展示；普通工具仍走统一摘要/原文，不分叉聊天页面。 */
+function safetyToolView(name: string | undefined, value: unknown): React.ReactNode {
+  if (!name || !value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  if (name === "assess_safety_hazard") {
+    const evidence = Array.isArray(data.evidence) ? data.evidence : [];
+    const suggestion = Array.isArray(data.suggestion) ? data.suggestion.map(String) : [];
+    return (
+      <div className="agent-safety-result" data-kind="assessment">
+        <div className="agent-safety-result-head">
+          <span>隐患评估</span>
+          <b>{String(data.riskLevel || "待核实")}风险</b>
+        </div>
+        <p className="agent-safety-title">{String(data.category || "施工安全综合隐患")}</p>
+        <p>{String(data.riskExplanation || "暂无风险说明")}</p>
+        <div className="agent-safety-tags">
+          <span>证据 {evidence.length} 条</span>
+          <span>建议 {suggestion.length} 项</span>
+          {data.assessmentId ? <span>评估 ID {String(data.assessmentId)}</span> : null}
+        </div>
+      </div>
+    );
+  }
+  if (name === "analyze_visual_hazard") {
+    const candidates = Array.isArray(data.hazardCandidates)
+      ? data.hazardCandidates as Array<Record<string, unknown>>
+      : [];
+    return (
+      <div className="agent-safety-result" data-kind="visual">
+        <div className="agent-safety-result-head"><span>图片隐患初筛</span><b>需人工复核</b></div>
+        <p className="agent-safety-title">{String(data.scene || "现场图片")}</p>
+        <ul className="agent-safety-candidates">
+          {candidates.slice(0, 5).map((candidate, index) => (
+            <li key={String(candidate.candidateId || index)}>
+              <span>{index + 1}</span>
+              <div><b>{String(candidate.hazardType || "待判断")}</b><p>{String(candidate.description || "")}</p></div>
+              <em>{Math.round(Number(candidate.confidence || 0) * 100)}%</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  if (name === "create_rectification_from_assessment") {
+    const ok = data.status === "TASK_CREATED" || data.status === "ALREADY_CREATED";
+    return (
+      <div className="agent-safety-result" data-kind={ok ? "task-ok" : "task-failed"}>
+        <div className="agent-safety-result-head"><span>整改任务</span><b>{ok ? "已落单" : "未创建"}</b></div>
+        <p className="agent-safety-title">{data.taskId ? `任务 ${String(data.taskId)}` : String(data.errorReason || data.status || "请查看返回结果")}</p>
+      </div>
+    );
+  }
+  return null;
 }
 
 /** 单行去 markdown 记号：标题/列表前缀与强调符 折叠摘要不该露原始符号 */

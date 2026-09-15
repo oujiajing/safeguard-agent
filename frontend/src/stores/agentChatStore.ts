@@ -55,7 +55,7 @@ interface AgentChatState {
   updateSessionTitle: (sessionId: string, title: string) => void;
   setDraft: (text: string) => void;
   toggleBlockOpen: (messageId: string, blockId: number) => void;
-  sendMessage: (question: string) => Promise<void>;
+  sendMessage: (question: string, image?: { attachmentId: string; filename: string }) => Promise<void>;
   confirmPendingTool: (messageId: string, blockId: number, approved: boolean) => Promise<void>;
   cancelGeneration: () => void;
 }
@@ -754,8 +754,8 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => {
         )
       }));
     },
-    sendMessage: async (question) => {
-      const trimmed = question.trim();
+    sendMessage: async (question, image) => {
+      const trimmed = question.trim() || (image ? "请分析这张现场图片中的安全隐患" : "");
       if (!trimmed) return;
       if (get().isStreaming) return;
       if (awaitingConfirm(get().messages)) {
@@ -766,10 +766,11 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => {
       // 轮次计时起点 收尾时实测总耗时
       const startedMs = Date.now();
 
+      const visibleQuestion = image ? `${trimmed}\n\n[图片附件：${image.filename}]` : trimmed;
       const userMessage: AgentMessage = {
         id: `user-${Date.now()}`,
         role: "user",
-        content: trimmed,
+        content: visibleQuestion,
         status: "done",
         createdAt: new Date().toISOString()
       };
@@ -783,8 +784,9 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => {
 
       const conversationId = get().currentSessionId;
       const query = buildQuery({
-        question: trimmed,
-        conversationId: conversationId || undefined
+        question: visibleQuestion,
+        conversationId: conversationId || undefined,
+        imageAttachmentId: image?.attachmentId
       });
       const url = `${API_BASE_URL}/agent/v1/chat${query}`;
 

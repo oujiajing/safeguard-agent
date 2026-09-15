@@ -13,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Component;
@@ -77,6 +78,28 @@ public class SafeTeamApiClient {
         return send("POST", "/api/pingan/hazard-rectification/orders/" + orderId + "/actions", request, true,
                 objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, OrderDetail.class));
     }
+
+    public OrganizationSelection resolveOrganization(String companyName, String departmentName, String teamName) {
+        List<OrganizationSelection> matches = optionList(properties.getCompaniesPath()).stream()
+                .filter(item -> companyName != null && companyName.trim().equals(item.label()))
+                .flatMap(company -> optionList(properties.getDepartmentsPath() + "?companyOrgId=" + company.value()).stream()
+                        .filter(item -> departmentName != null && departmentName.trim().equals(item.label()))
+                        .flatMap(department -> optionList(properties.getTeamsPath() + "?parentOrgId=" + department.value()).stream()
+                                .filter(item -> teamName != null && teamName.trim().equals(item.label()))
+                                .map(team -> new OrganizationSelection(company.value(), company.label(), department.value(), department.label(), team.value(), team.label()))))
+                .toList();
+        if (matches.isEmpty()) throw new SafeTeamApiException("未找到匹配的公司、部门和班组组合", 404, false);
+        if (matches.size() > 1) throw new SafeTeamApiException("公司、部门和班组名称组合存在多个匹配项", 409, false);
+        return matches.get(0);
+    }
+
+    private List<OrganizationOption> optionList(String path) {
+        ApiResponse<List<OrganizationOption>> response = send("GET", path, null, false,
+                objectMapper.getTypeFactory().constructParametricType(ApiResponse.class,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, OrganizationOption.class)));
+        return response.data() == null ? List.of() : response.data();
+    }
+
 
     private <T> T send(String method, String path, Object body, boolean write, JavaType responseType) {
         return send(method, path, body, write, null, responseType);
