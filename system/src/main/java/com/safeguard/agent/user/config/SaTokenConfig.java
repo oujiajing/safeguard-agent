@@ -75,7 +75,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
     }
 
     private boolean isSafeGuardServiceRequest(HttpServletRequest request) {
-        return (request.getRequestURI().contains("/agent/hazard-assessment")
+        return (request.getRequestURI().contains("/agent/v1/hosted/")
+                || request.getRequestURI().contains("/agent/hazard-assessment")
                 || request.getRequestURI().contains("/agent/visual-hazard-analysis"))
                 && request.getHeader("X-Safeguard-Service-Token") != null;
     }

@@ -1,6 +1,7 @@
 package com.safeguard.agent.rag.core.prompt;
 
 import com.safeguard.agent.rag.config.RAGConfigProperties;
+import com.safeguard.agent.framework.convention.ChatMessage;
 import com.safeguard.agent.rag.core.intent.IntentNode;
 import com.safeguard.agent.rag.core.intent.NodeScore;
 import org.junit.jupiter.api.Test;
@@ -173,6 +174,16 @@ class RAGPromptServiceTest {
         String result = service(false).buildSystemPrompt(context);
 
         assertTrue(result.startsWith("# 单意图模板"));
+    }
+
+    @Test
+    void givesMultiQuestionAnswerCompletenessContract() {
+        List<ChatMessage> messages = service(false).buildStructuredMessages(
+                kbContext(), List.of(), "综合问题", List.of("问题一", "问题二"), false);
+
+        assertTrue(messages.get(messages.size() - 1).getContent().toString().contains("必须按问题编号逐项回答"));
+        assertTrue(messages.get(messages.size() - 1).getContent().toString().contains("问题一"));
+        assertTrue(messages.get(messages.size() - 1).getContent().toString().contains("问题二"));
     }
 
     @Test

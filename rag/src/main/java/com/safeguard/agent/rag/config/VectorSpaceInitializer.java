@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(prefix = "rag.vector", name = "initialize-on-startup", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 public class VectorSpaceInitializer {
 

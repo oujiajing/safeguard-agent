@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class HazardAssessmentService {
-    private static final String CREATE_TOOL = "create_rectification_order";
 
     private final LegalAnswerService legalAnswerService;
     private final LLMService llmService;
@@ -45,7 +44,7 @@ public class HazardAssessmentService {
         LegalAnswerResponse legal = legalAnswerService.answer(hazard);
         if (legal.evidence().isEmpty()) {
             HazardAssessmentResult result = new HazardAssessmentResult(hazard, classify(hazard), "待核实",
-                    LegalAnswerService.NO_EVIDENCE, List.of(), List.of("补充现场照片、位置、作业类型和责任班组后再评估"), proposal(), UUID.randomUUID().toString());
+                    LegalAnswerService.NO_EVIDENCE, List.of(), List.of("补充现场照片、位置、作业类型和责任班组后再评估"), proposal(), UUID.randomUUID().toString(), legal.trace());
             repository.save(new HazardAssessment(result.assessmentId(), hazard, result.category(), result.riskLevel(), result.riskExplanation(), result.suggestion(), List.of(), result.evidence(), "CONFIRMATION_REQUIRED", result.action(), null, null, null, Instant.now(), null, List.of(new HazardAssessment.TraceStep("WAIT_CONFIRM", "无 Evidence，等待补充材料"))));
             return result;
         }
@@ -57,7 +56,7 @@ public class HazardAssessmentService {
                 .temperature(0D).topP(1D).thinking(false).build());
         Advice advice = parseAdvice(generated, legal.answer());
         HazardAssessmentResult result = new HazardAssessmentResult(hazard, classify(hazard), riskLevel(hazard), advice.riskExplanation(),
-                legal.evidence(), advice.suggestion(), proposal(), UUID.randomUUID().toString());
+                legal.evidence(), advice.suggestion(), proposal(), UUID.randomUUID().toString(), legal.trace());
         List<String> criteria = advice.suggestion().stream().filter(s -> s.startsWith("验收标准：")).map(s -> s.substring(5)).toList();
         HazardAssessment assessment = new HazardAssessment(result.assessmentId(), result.hazard(), result.category(), result.riskLevel(), result.riskExplanation(),
                 result.suggestion(), criteria, result.evidence(), HazardAssessment.Status.CONFIRMATION_REQUIRED.name(), result.action(), null, null, null, Instant.now(), null,
@@ -150,7 +149,8 @@ public class HazardAssessmentService {
     }
 
     private HazardAssessmentResult.Action proposal() {
-        return new HazardAssessmentResult.Action(true, true, CREATE_TOOL, "CONFIRMATION_REQUIRED");
+        // An assessment is evidence and a proposal only. It is not user authorization to write.
+        return new HazardAssessmentResult.Action(false, false, null, "ASSESSMENT_ONLY");
     }
 
     private String classify(String hazard) {

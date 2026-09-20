@@ -1,0 +1,28 @@
+version: 1
+policy:
+  generated: "Deterministic regression fixtures; expected labels are maintained in this file."
+  real: "Import only after license, source URL, attribution, version, and de-identification review are recorded."
+samples:
+  - id: synthetic-unprotected-stairwell-no-helmet
+    file: unprotected-stairwell-no-helmet.png
+    source: generated
+    expected_present: ["临边无防护", "未佩戴安全帽", "未穿戴反光背心"]
+    expected_absent: ["未佩戴安全带"]
+    tags: [edge-protection, ppe, multi-hazard]
+  - id: synthetic-small-no-helmet-group
+    file: small-no-helmet-group.png
+    source: generated
+    expected_present: ["未佩戴安全帽"]
+    expected_absent: ["临边无防护", "未穿戴反光背心"]
+    tags: [small-object, ppe]
+  - id: synthetic-multi-hazard-temporary-power
+    file: multi-hazard-temporary-power.png
+    source: generated
+    expected_present: ["临时用电", "湿滑地面", "消防通道堵塞"]
+    expected_absent: []
+    tags: [temporary-power, wet-floor, emergency-egress, multi-hazard]
+metrics:
+  candidate_recall: "Expected-present labels found / expected-present labels."
+  candidate_precision: "Expected-present labels found / all confirmed or suspected labels."
+  forbidden_hallucination_rate: "Expected-absent labels returned / expected-absent labels."
+  manual_review_rate: "Candidates marked needsManualVerification / all candidates."

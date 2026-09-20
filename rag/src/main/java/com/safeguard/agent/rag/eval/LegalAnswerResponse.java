@@ -7,8 +7,12 @@ import java.util.List;
 public record LegalAnswerResponse(
         String answer,
         List<LegalEvidence> evidence,
-        List<Citation> citations
+        List<Citation> citations,
+        LegalAnswerTrace trace
 ) {
+    public LegalAnswerResponse(String answer, List<LegalEvidence> evidence, List<Citation> citations) {
+        this(answer, evidence, citations, null);
+    }
     public record Citation(String evidenceId, String referenceText) {
     }
 }

@@ -4816,6 +4816,71 @@ textarea {
   pointer-events: none;
 }
 
+.agent-app .agent-composer-attachment {
+  margin: 0 auto var(--agent-s2);
+  display: flex;
+  align-items: center;
+  gap: var(--agent-s2);
+  width: fit-content;
+  max-width: min(880px, calc(100% - 8px));
+  padding: 6px 8px 6px 6px;
+  border: var(--agent-hair-strong);
+  border-radius: 10px;
+  background: var(--agent-surface);
+  color: var(--agent-muted);
+  font-size: var(--agent-t-xs);
+}
+
+.agent-app .agent-composer-attachment img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: var(--agent-hair);
+}
+
+.agent-app .agent-composer-attachment span {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-app .agent-composer-attachment button,
+.agent-app .agent-composer-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--agent-muted);
+}
+
+.agent-app .agent-composer-attachment button {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+}
+
+.agent-app .agent-composer-attachment button:hover,
+.agent-app .agent-composer-attach-btn:hover:not(:disabled) {
+  background: var(--agent-signal-wash);
+  color: var(--agent-signal-ink);
+}
+
+.agent-app .agent-composer-attach-btn {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 999px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.agent-app .agent-composer-attach-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* 框宽与轮次卡同 880 同列：横贯整屏的 40px 高窄条读不出"这是要写字的地方" */
 /* 空着时就得是一片能写字的地方：上一轮收成一行高（66）只是刚好包住一行字的槽 读成"这儿只能填一句" */
 .agent-app .agent-composer-box {
@@ -4903,6 +4968,101 @@ textarea {
   font-size: var(--agent-t-xs);
   line-height: 1.4;
   color: var(--agent-muted);
+}
+
+/* 施工安全工具结果沿用事件时间线，只增强工具块本身，不把聊天拆成业务专页。 */
+.agent-app .agent-safety-result {
+  margin: var(--agent-s2) 0;
+  padding: var(--agent-s3);
+  border: var(--agent-hair-strong);
+  border-left: 3px solid var(--agent-signal);
+  background: color-mix(in srgb, var(--agent-signal-wash) 46%, var(--agent-surface));
+  color: var(--agent-muted);
+  font-size: var(--agent-t-sm);
+  line-height: 1.55;
+}
+
+.agent-app .agent-safety-result[data-kind="task-ok"] {
+  border-left-color: #3f7d5a;
+  background: #f1f7f2;
+}
+
+.agent-app .agent-safety-result[data-kind="task-failed"] {
+  border-left-color: #ad4d42;
+  background: #fbf1ef;
+}
+
+.agent-app .agent-safety-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--agent-s2);
+  font-family: var(--agent-font-mono);
+  font-size: var(--agent-t-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-app .agent-safety-result-head b {
+  color: var(--agent-signal-ink);
+  font-weight: 700;
+}
+
+.agent-app .agent-safety-title {
+  margin: 6px 0 3px;
+  color: var(--agent-ink);
+  font-weight: 700;
+}
+
+.agent-app .agent-safety-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--agent-s2);
+}
+
+.agent-app .agent-safety-tags span {
+  padding: 2px 7px;
+  border: var(--agent-hair);
+  background: var(--agent-surface);
+  font-family: var(--agent-font-mono);
+  font-size: 10px;
+}
+
+.agent-app .agent-safety-candidates {
+  display: grid;
+  gap: 6px;
+  margin-top: var(--agent-s2);
+}
+
+.agent-app .agent-safety-candidates li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: var(--agent-hair);
+}
+
+.agent-app .agent-safety-candidates li > span {
+  color: var(--agent-signal-ink);
+  font-family: var(--agent-font-mono);
+}
+
+.agent-app .agent-safety-candidates b {
+  color: var(--agent-ink);
+  font-weight: 600;
+}
+
+.agent-app .agent-safety-candidates p {
+  margin-top: 1px;
+}
+
+.agent-app .agent-safety-candidates em {
+  color: var(--agent-muted);
+  font-family: var(--agent-font-mono);
+  font-size: 10px;
+  font-style: normal;
 }
 
 /* ── 原始帧抽屉 ─────────────────────────── */

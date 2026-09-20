@@ -49,9 +49,10 @@ public class LegalAnswerService {
         List<SubQuestionIntent> intents = intentResolver.resolve(rewrite);
         RetrievalContext context = retrievalEngine.retrieve(intents);
         List<RetrievedChunk> chunks = flatten(context);
-        List<LegalEvidence> evidence = withEvidenceIds(resolveEvidence(chunks));
+        List<LegalEvidence> evidence = withEvidenceIds(selectDirectEvidence(question, resolveEvidence(chunks)));
+        LegalAnswerTrace trace = trace(question, rewrite, intents, context, evidence);
         if (evidence.isEmpty()) {
-            return new LegalAnswerResponse(NO_EVIDENCE, List.of(), List.of());
+            return new LegalAnswerResponse(NO_EVIDENCE, List.of(), List.of(), trace);
         }
 
         String groundedPrompt = buildGroundedPrompt(question, evidence);
@@ -69,7 +70,7 @@ public class LegalAnswerService {
         List<LegalAnswerResponse.Citation> citations = evidence.stream()
                 .map(e -> new LegalAnswerResponse.Citation(e.evidenceId(), referenceText(e)))
                 .toList();
-        return new LegalAnswerResponse(answer, evidence, citations);
+        return new LegalAnswerResponse(answer, evidence, citations, trace);
     }
 
     private LegalAnswerResponse syntheticDemoAnswer(String question) {
@@ -126,6 +127,29 @@ public class LegalAnswerService {
         return result;
     }
 
+    /**
+     * Keep directly relevant safety citations out of the final assessment contract. Retrieval is
+     * intentionally broad; a broad Top-K must not be presented as equally supporting evidence.
+     * For unrecognised domains we return no direct evidence rather than presenting a broad
+     * Top-K result as if it supported the answer. This is deliberately conservative: callers
+     * may still expose retrieval trace and ask for a more specific question.
+     */
+    static List<LegalEvidence> selectDirectEvidence(String question, List<LegalEvidence> evidence) {
+        List<String> anchors = List.of("安全帽", "安全带", "临边", "洞口", "脚手架", "吊装", "起重",
+                "动火", "消防", "临时用电", "配电", "机械", "机械设备", "保险", "限位",
+                "防护栏", "高处", "架空线路", "架空线", "档距", "通风", "密闭空间", "防滑",
+                "雨雪", "应急预案", "应急物资", "拆除工程", "安全生产许可证", "许可证", "支撑架",
+                "洞口", "封堵", "安全绳", "钢结构", "备案");
+        String source = question == null ? "" : question;
+        List<String> matched = anchors.stream().filter(source::contains).toList();
+        if (matched.isEmpty()) return List.of();
+        return evidence.stream().filter(item -> {
+            String text = ((item.documentTitle() == null ? "" : item.documentTitle()) + " "
+                    + (item.content() == null ? "" : item.content())).replaceAll("\\s+", "");
+            return matched.stream().anyMatch(text::contains);
+        }).toList();
+    }
+
     private String buildGroundedPrompt(String question, List<LegalEvidence> evidence) {
         String sources = evidence.stream()
                 .map(e -> {
@@ -156,5 +180,15 @@ public class LegalAnswerService {
     private String referenceText(LegalEvidence evidence) {
         return "《" + safe(evidence.documentTitle()) + "》 "
                 + safe(evidence.standardNo()) + " " + safe(evidence.clauseNo());
+    }
+
+    private LegalAnswerTrace trace(String original, RewriteResult rewrite, List<SubQuestionIntent> intents,
+            RetrievalContext context, List<LegalEvidence> evidence) {
+        List<String> intentIds = intents.stream().flatMap(item -> item.nodeScores().stream())
+                .map(score -> score.getNode().getId()).filter(java.util.Objects::nonNull).distinct().toList();
+        List<String> knowledgeBases = intents.stream().flatMap(item -> item.nodeScores().stream())
+                .map(score -> score.getNode().getKbId()).filter(java.util.Objects::nonNull).distinct().toList();
+        return new LegalAnswerTrace(original, rewrite.rewrittenQuestion(), rewrite.subQuestions(), intentIds,
+                knowledgeBases, flatten(context).size(), evidence.size(), !evidence.isEmpty(), context.getRetrievalTraces());
     }
 }

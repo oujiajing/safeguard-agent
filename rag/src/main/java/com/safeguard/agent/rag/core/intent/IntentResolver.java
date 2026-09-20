@@ -75,8 +75,45 @@ public class IntentResolver {
         List<NodeScore> scores = intentClassifier.classifyTargets(question);
         return scores.stream()
                 .filter(ns -> ns.getScore() >= INTENT_MIN_SCORE)
+                .filter(ns -> isActionCompatible(question, ns.getNode()))
                 .limit(MAX_INTENT_COUNT)
                 .toList();
+    }
+
+    /**
+     * LLM scores are candidates, not authorization. Safe-team write intents require an explicit
+     * action verb; read intents require an explicit work-order query signal. This prevents broad
+     * “隐患整改” semantics from routing ordinary safety questions into business tools.
+     */
+    private boolean isActionCompatible(String question, IntentNode node) {
+        if (node == null || !node.isMCP() || node.getMcpToolId() == null) {
+            return true;
+        }
+        String text = question == null ? "" : question.trim();
+        String toolId = node.getMcpToolId();
+        if ("create_rectification_order".equals(toolId)) {
+            return !negativeWrite(text) && (text.matches(".*(创建|新建|生成|提交|发起|落单).*(工单|整改|任务).*\\s*")
+                    || text.matches(".*(工单|整改|任务).*(创建|新建|生成|提交|发起|落单).*"));
+        }
+        if ("issue_rectification".equals(toolId)) {
+            return !negativeWrite(text) && (text.matches(".*(下发|派发|指派|执行).*(工单|整改|任务).*\\s*")
+                    || text.matches(".*(工单|整改|任务).*(下发|派发|指派|执行).*"));
+        }
+        if ("search_rectification_orders".equals(toolId) || "get_rectification_order".equals(toolId)) {
+            return text.contains("工单") && text.matches(".*(查询|查|查看|详情|详细|状态|列表|多少|哪些|当前|未关闭|待整改).*" );
+        }
+        return true;
+    }
+
+    private boolean negativeWrite(String text) {
+        return text.contains("不要创建") || text.contains("先不要创建") || text.contains("不创建")
+                || text.contains("不需要创建") || text.contains("无需创建")
+                || text.contains("不要下发") || text.contains("先不要下发") || text.contains("不下发")
+                || text.contains("不需要下发") || text.contains("无需下发")
+                || text.contains("仅评估") || text.contains("只评估") || text.contains("仅查询")
+                || text.contains("只查询") || text.contains("不要执行") || text.contains("不执行")
+                || text.contains("无需执行") || text.contains("不要提交") || text.contains("不提交")
+                || text.contains("不需要提交");
     }
 
     /**

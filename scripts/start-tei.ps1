@@ -1,5 +1,5 @@
 param(
-    [string]$ModelPath = 'D:\1-project\RAG_论文\RAG_2\assets\models\bge-m3'
+    [string]$ModelPath = 'D:\AI-models\base\bge-m3'
 )
 
 $ErrorActionPreference = 'Stop'

@@ -48,3 +48,20 @@ export async function getAgentMeta() {
 export async function stopAgentTask(taskId: string) {
   return api.post<void>(`/agent/v1/stop?taskId=${encodeURIComponent(taskId)}`);
 }
+
+export interface AgentImageUploadResult {
+  attachmentId: string;
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
+export async function uploadAgentImage(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return api.post<AgentImageUploadResult, AgentImageUploadResult>(
+    "/agent/v1/attachments/images",
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+}

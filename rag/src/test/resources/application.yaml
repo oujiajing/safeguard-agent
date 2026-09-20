@@ -1,9 +1,57 @@
-# Keep the bootstrap configuration as the single source of truth without
-# registering another module's resource directory as an IntelliJ content root.
 spring:
-  config:
-    import:
-      # IntelliJ normally runs tests from the repository root.
-      - optional:file:${user.dir}/bootstrap/src/main/resources/application.yaml
-      # Maven Surefire normally runs tests from this module's directory.
-      - optional:file:${user.dir}/../bootstrap/src/main/resources/application.yaml
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:safeguard_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+rag:
+  storage:
+    type: s3
+    initialize-on-startup: false
+    s3:
+      endpoint: http://127.0.0.1:9000
+      access-key: test-access-key
+      secret-key: test-secret-key
+      region: us-east-1
+      path-style: true
+  vector:
+    type: pg
+    initialize-on-startup: false
+  keyword:
+    type: none
+  mcp:
+    servers: []
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: safeguard-test-producer
+
+safeguard:
+  snowflake:
+    enabled: false
+
+ai:
+  chat:
+    candidates:
+      - id: test-chat
+        provider: test
+        model: test-model
+        supports-thinking: true
+    default-tier: standard
+    deep-thinking-tier: deep
+    tiers:
+      fast:
+        candidates: [test-chat]
+        timeout-ms: 1000
+      standard:
+        candidates: [test-chat]
+        timeout-ms: 1000
+      deep:
+        candidates: [test-chat]
+        timeout-ms: 1000

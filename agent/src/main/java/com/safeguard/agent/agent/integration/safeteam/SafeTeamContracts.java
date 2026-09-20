@@ -10,6 +10,10 @@ public final class SafeTeamContracts {
 
     public record ApiResponse<T>(int code, T data, Object error, String message) {}
     public record PageResult<T>(List<T> items, long total) {}
+    public record OrganizationOption(Long value, String label, String code) {}
+    public record OrganizationSelection(Long companyId, String companyName,
+                                        Long departmentId, String departmentName,
+                                        Long teamId, String teamName) {}
 
     public record OrderQuery(
             String status, Long companyId, Long departmentId, Long teamId,

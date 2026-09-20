@@ -1,0 +1,19 @@
+version: 1
+policy:
+  source: "keremberke/construction-safety-object-detection"
+  revision: "a19eace121442bce60da9f5036dc16bf9f2f6fa6"
+  license: "CC-BY-4.0"
+  attribution: "Roboflow Universe Projects, Construction Site Safety Dataset (2023)."
+  import_status: "approved_original_no_personal_identifier"
+  identifier_review: "Selected original has no visible person or readable construction-site identity. Natural equipment branding is not an evaluation label."
+samples:
+  - id: real-keremberke-wheel-loader-no-person
+    file: real-raw-wheel-loader-no-person.jpg
+    source: real-deidentified
+    original_sample_id: 15
+    original_filename: "construction-823-_jpg.rf.67b2bbd92d1b54bbe2793211afde926e.jpg"
+    sha256: "D1F4078D86B767D253BF88C728FC6AFA674741CFAD953388259CDD135F9AF060"
+    expected_present: []
+    expected_absent: ["未佩戴安全帽", "未穿戴反光背心"]
+    tags: [real, original, no-person, wheel-loader, forbidden-hallucination]
+    review: "Manual visual review completed 2026-09-15: no visible person, face, plate, construction-site text or company identity; equipment branding is not used as an evaluation label."

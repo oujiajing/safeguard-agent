@@ -13,6 +13,7 @@ import com.safeguard.agent.rag.core.prompt.AgentPromptSlot;
 import com.safeguard.agent.rag.core.skill.AgentSkillRegistry;
 import com.safeguard.agent.rag.enums.IntentKind;
 import com.safeguard.agent.rag.service.KnowledgeSearchFacade;
+import com.safeguard.agent.agent.integration.safeteam.SafeTeamIntegrationProperties;
 import io.agentscope.core.permission.PermissionBehavior;
 import io.agentscope.core.tool.ToolBase;
 import io.agentscope.core.tool.Toolkit;
@@ -49,6 +50,7 @@ class AgentToolCatalogTest {
 
         AgentToolCatalog catalog = new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
@@ -61,7 +63,8 @@ class AgentToolCatalogTest {
         Toolkit toolkit = catalog.buildToolkit(resolved);
 
         assertThat(toolkit.getToolNames())
-                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME, "sales_query");
+                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME,
+                        KnowledgeDocumentStatsTool.TOOL_NAME, "sales_query");
         assertThat(toolkit.getTool(KnowledgeSearchTool.TOOL_NAME).getDescription())
                 .isEqualTo("当前 Agent 的知识库工具描述");
         assertThat(toolkit.getTool("sales_query").getDescription()).isEqualTo("查询实时销售数据");
@@ -88,6 +91,31 @@ class AgentToolCatalogTest {
     }
 
     @Test
+    void hidesLegacySafeTeamWriteToolsWhenNaturalLanguageWritesAreDisabled() {
+        IntentNodeRegistry intents = mock(IntentNodeRegistry.class);
+        McpToolRegistry registry = mock(McpToolRegistry.class);
+        List<McpToolExecutor> executors = List.of(
+                executor("search_rectification_orders", "查询工单", readOnlyHint(true)),
+                executor("create_rectification_order", "创建工单", readOnlyHint(false)),
+                executor("issue_rectification", "下发工单", readOnlyHint(false)));
+        when(intents.listMcpToolNodes()).thenReturn(executors.stream()
+                .map(executor -> mcpNode(executor.getToolId(), executor.getToolId(), "工具", executor.getToolId()))
+                .toList());
+        when(registry.listAllExecutors()).thenReturn(executors);
+        AgentPromptResolver prompts = mock(AgentPromptResolver.class);
+        when(prompts.resolve(AgentPromptSlot.KNOWLEDGE_TOOL_DESCRIPTION)).thenReturn("知识库工具");
+        AgentToolCatalog catalog = new AgentToolCatalog(mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
+                mock(AgentConversationService.class), intents, registry, prompts, memoryProperties(false),
+                mock(AgentMemoryPipeline.class), mock(AgentSkillRegistry.class));
+        catalog.setSafeTeamProperties(new SafeTeamIntegrationProperties());
+
+        assertThat(catalog.buildToolkit(catalog.resolve()).getToolNames())
+                .contains("search_rectification_orders")
+                .doesNotContain("create_rectification_order", "issue_rectification");
+    }
+
+    @Test
     void shouldPassThroughMcpReadOnlyHint() {
         Toolkit toolkit = buildToolkitFor(
                 executor("read_query", "只读工具", readOnlyHint(true)),
@@ -107,7 +135,8 @@ class AgentToolCatalogTest {
         Toolkit toolkit = catalog.buildToolkit(resolved);
 
         assertThat(toolkit.getToolNames())
-                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME);
+                .containsExactlyInAnyOrder(KnowledgeSearchTool.TOOL_NAME,
+                        KnowledgeDocumentStatsTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME);
         assertThat(toolkit.getTool(MemoryFlushTool.TOOL_NAME).getDescription())
                 .isEqualTo("需要记住或忘掉用户信息时调用");
         // 无参：给了参数就等于把内容写入权交给模型
@@ -129,7 +158,7 @@ class AgentToolCatalogTest {
         AgentToolCatalog.ResolvedCatalog resolved = catalog.resolve();
 
         assertThat(catalog.buildToolkit(resolved).getToolNames())
-                .containsExactly(KnowledgeSearchTool.TOOL_NAME);
+                .containsExactly(KnowledgeSearchTool.TOOL_NAME, KnowledgeDocumentStatsTool.TOOL_NAME);
         assertThat(resolved.fingerprint().memoryToolDescription()).isNull();
         assertThat(resolved.displayNameOf(MemoryFlushTool.TOOL_NAME)).isEqualTo(MemoryFlushTool.TOOL_NAME);
     }
@@ -195,6 +224,7 @@ class AgentToolCatalogTest {
 
         AgentToolCatalog catalog = new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
@@ -221,6 +251,7 @@ class AgentToolCatalogTest {
 
         return new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,

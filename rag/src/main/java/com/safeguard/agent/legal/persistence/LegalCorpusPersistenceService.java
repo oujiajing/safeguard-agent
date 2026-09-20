@@ -24,8 +24,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LegalCorpusPersistenceService {
 
-    public static final String KB_ID = "legal-corpus-2b";
-    public static final String COLLECTION = "legal_corpus_2b";
+    /** Canonical legal corpus knowledge-base ID used by the persisted 37-case evaluation snapshot. */
+    public static final String KB_ID = "2096156501948387328";
+    /** Collection name used by the formal golden-set scope and both retrieval channels. */
+    public static final String COLLECTION = "123123";
     private static final String ACTOR = "phase2b";
 
     private final JdbcTemplate jdbcTemplate;

@@ -4,6 +4,7 @@ import com.safeguard.agent.framework.convention.ChatMessage;
 import com.safeguard.agent.framework.convention.ChatRequest;
 import com.safeguard.agent.infra.chat.LLMService;
 import com.safeguard.agent.rag.core.guidance.GuidanceDecision;
+import com.safeguard.agent.rag.core.answer.SemanticMultiQuestionCoverageEvaluator;
 import com.safeguard.agent.rag.core.guidance.IntentGuidanceService;
 import com.safeguard.agent.rag.core.intent.IntentResolver;
 import com.safeguard.agent.rag.core.intent.NodeScoreFilters;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,6 +45,7 @@ public class KnowledgeSearchFacade {
     private final CitationContextEnricher citationContextEnricher;
     private final RAGPromptService promptService;
     private final LLMService llmService;
+    private final SemanticMultiQuestionCoverageEvaluator coverageEvaluator;
 
     /**
      * 检索并合成答案，供主 Agent 的 search_knowledge 工具调用
@@ -76,9 +79,22 @@ public class KnowledgeSearchFacade {
                 .kbIntents(mergedGroup.kbIntents())
                 .eligibleIntentIds(retrievalCtx.getEligibleIntentIds())
                 .build();
-        List<ChatMessage> messages = promptService.buildStructuredMessages(
-                promptContext, List.of(), rewriteResult.rewrittenQuestion(), rewriteResult.subQuestions(), false);
+        List<ChatMessage> messages = new ArrayList<>(promptService.buildStructuredMessages(
+                promptContext, List.of(), rewriteResult.rewrittenQuestion(), rewriteResult.subQuestions(), false));
 
+        String answer = llmService.chat(ChatRequest.builder()
+                .messages(messages)
+                .temperature(0D)
+                .topP(1D)
+                .thinking(false)
+                .build());
+        if (rewriteResult.subQuestions().size() <= 1
+                || coverageEvaluator.isComplete(answer, rewriteResult.subQuestions())) {
+            return answer;
+        }
+        log.warn("复合问题答案覆盖不足，触发一次完整性重试: questions={}, answerLength={}",
+                rewriteResult.subQuestions().size(), answer == null ? 0 : answer.length());
+        messages.add(ChatMessage.system("上一版回答遗漏了部分子问题。请严格按 <questions> 中的编号逐项回答全部子问题；不要省略任何一项，证据不足也要明确说明。"));
         return llmService.chat(ChatRequest.builder()
                 .messages(messages)
                 .temperature(0D)

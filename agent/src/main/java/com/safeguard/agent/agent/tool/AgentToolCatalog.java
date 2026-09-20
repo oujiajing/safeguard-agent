@@ -15,12 +15,15 @@ import com.safeguard.agent.rag.core.prompt.AgentPromptSlot;
 import com.safeguard.agent.rag.core.skill.AgentSkill;
 import com.safeguard.agent.rag.core.skill.AgentSkillRegistry;
 import com.safeguard.agent.rag.service.KnowledgeSearchFacade;
+import com.safeguard.agent.knowledge.service.KnowledgeDocumentService;
+import com.safeguard.agent.agent.integration.safeteam.SafeTeamIntegrationProperties;
 import io.agentscope.core.tool.Toolkit;
 import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +43,7 @@ import java.util.stream.Collectors;
 public class AgentToolCatalog {
 
     private final KnowledgeSearchFacade knowledgeSearchFacade;
+    private final KnowledgeDocumentService knowledgeDocumentService;
     private final AgentConversationService conversationService;
     private final IntentNodeRegistry intentNodeRegistry;
     private final McpToolRegistry mcpToolRegistry;
@@ -47,6 +51,20 @@ public class AgentToolCatalog {
     private final AgentMemoryProperties memoryProperties;
     private final AgentMemoryPipeline memoryPipeline;
     private final AgentSkillRegistry skillRegistry;
+
+    /** Optional in hand-built unit tests; present in the Spring Agent runtime. */
+    private SafetyAgentToolFactory safetyToolFactory;
+    private SafeTeamIntegrationProperties safeTeamProperties;
+
+    @Autowired(required = false)
+    void setSafetyToolFactory(SafetyAgentToolFactory safetyToolFactory) {
+        this.safetyToolFactory = safetyToolFactory;
+    }
+
+    @Autowired(required = false)
+    void setSafeTeamProperties(SafeTeamIntegrationProperties safeTeamProperties) {
+        this.safeTeamProperties = safeTeamProperties;
+    }
 
     /**
      * 解析当前可用工具并生成快照，同一请求内指纹与 Toolkit 都从此快照派生
@@ -66,6 +84,10 @@ public class AgentToolCatalog {
         Toolkit toolkit = new Toolkit();
         toolkit.registerAgentTool(new KnowledgeSearchTool(
                 catalog.knowledgeToolDescription, knowledgeSearchFacade, conversationService));
+        toolkit.registerAgentTool(new KnowledgeDocumentStatsTool(knowledgeDocumentService));
+        if (safetyToolFactory != null) {
+            safetyToolFactory.createTools().forEach(toolkit::registerAgentTool);
+        }
         if (catalog.memoryToolDescription != null) {
             toolkit.registerAgentTool(new MemoryFlushTool(catalog.memoryToolDescription, memoryPipeline));
         } else if (memoryProperties.isLongTermEnabled()) {
@@ -125,6 +147,10 @@ public class AgentToolCatalog {
 
         List<McpToolBinding> bindings = new ArrayList<>();
         nodesByToolId.forEach((toolId, nodes) -> {
+            if (!legacyWriteToolVisible(toolId)) {
+                unavailableToolIds.add(toolId);
+                return;
+            }
             McpToolExecutor executor = executors.get(toolId);
             if (executor == null) {
                 unavailableToolIds.add(toolId);
@@ -133,6 +159,13 @@ public class AgentToolCatalog {
             bindings.add(toBinding(toolId, nodes, executor));
         });
         return bindings;
+    }
+
+    private boolean legacyWriteToolVisible(String toolId) {
+        if (safeTeamProperties == null || safeTeamProperties.isNaturalLanguageWriteEnabled()) {
+            return true;
+        }
+        return !"create_rectification_order".equals(toolId) && !"issue_rectification".equals(toolId);
     }
 
     private McpToolBinding toBinding(String toolId, List<IntentNode> nodes, McpToolExecutor executor) {
@@ -197,6 +230,9 @@ public class AgentToolCatalog {
 
             Map<String, String> names = new LinkedHashMap<>();
             names.put(KnowledgeSearchTool.TOOL_NAME, KnowledgeSearchTool.DISPLAY_NAME);
+            names.put(SafetyAgentToolFactory.ASSESS_TOOL, "施工隐患评估");
+            names.put(SafetyAgentToolFactory.VISUAL_TOOL, "现场图片隐患识别");
+            names.put(SafetyAgentToolFactory.CREATE_TOOL, "创建整改工单");
             if (memoryToolDescription != null) {
                 names.put(MemoryFlushTool.TOOL_NAME, MemoryFlushTool.DISPLAY_NAME);
             }

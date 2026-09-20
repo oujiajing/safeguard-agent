@@ -28,9 +28,10 @@ public class AgentChatController {
 
     @GetMapping(value = "/agent/v1/chat", produces = "text/event-stream;charset=UTF-8")
     public SseEmitter chat(@RequestParam @ChatQuestion String question,
-                           @RequestParam(required = false) String conversationId) {
+                           @RequestParam(required = false) String conversationId,
+                           @RequestParam(required = false) String imageAttachmentId) {
         SseEmitter emitter = new SseEmitter(agentProperties.getSseTimeoutMs());
-        agentChatService.streamChat(question, conversationId, emitter);
+        agentChatService.streamChat(question, conversationId, imageAttachmentId, emitter);
         return emitter;
     }
 

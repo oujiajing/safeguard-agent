@@ -12,6 +12,11 @@ public interface AgentChatService {
      */
     void streamChat(String question, String conversationId, SseEmitter emitter);
 
+    /** 发起带短期图片附件的 Agent 对话。 */
+    default void streamChat(String question, String conversationId, String imageAttachmentId, SseEmitter emitter) {
+        streamChat(question, conversationId, emitter);
+    }
+
     /**
      * 裁决挂起的写操作并续跑：同意则执行工具，拒绝则让模型带着「用户已取消」继续作答
      * 参数只带同意与否，待执行的工具与入参一律从 Agent 状态里取原件

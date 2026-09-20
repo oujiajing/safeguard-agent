@@ -28,7 +28,8 @@ public class AgentMetaController {
     public Result<AgentMetaVO> meta() {
         boolean mcpConfigured = toolCatalog.mcpToolCount() > 0;
         // 能力清单随实况增删，否则会与 mcpConfigured 各说各话，前端只能自己对齐
-        List<String> capabilities = new ArrayList<>(List.of("react", "knowledge-base"));
+        List<String> capabilities = new ArrayList<>(List.of(
+                "react", "knowledge-base", "safety-assessment", "image-input", "human-confirmation"));
         if (mcpConfigured) {
             capabilities.add("mcp-tools");
         }

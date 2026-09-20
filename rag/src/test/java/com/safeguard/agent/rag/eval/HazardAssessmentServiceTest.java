@@ -47,10 +47,10 @@ class HazardAssessmentServiceTest {
         assertThat(result.riskLevel()).isEqualTo("高");
         assertThat(result.evidence()).containsExactly(evidence);
         assertThat(result.suggestion()).containsExactly("设置连续防护栏杆", "验收标准：栏杆牢固且覆盖临边");
-        assertThat(result.action().needCreateTask()).isTrue();
-        assertThat(result.action().requiresConfirmation()).isTrue();
-        assertThat(result.action().toolName()).isEqualTo("create_rectification_order");
-        assertThat(result.action().status()).isEqualTo("CONFIRMATION_REQUIRED");
+        assertThat(result.action().needCreateTask()).isFalse();
+        assertThat(result.action().requiresConfirmation()).isFalse();
+        assertThat(result.action().toolName()).isNull();
+        assertThat(result.action().status()).isEqualTo("ASSESSMENT_ONLY");
     }
 
     @Test
@@ -76,6 +76,6 @@ class HazardAssessmentServiceTest {
         HazardAssessmentResult result = service.assess(hazard);
 
         assertThat(result.hazard()).isEqualTo(hazard);
-        assertThat(result.action().status()).isEqualTo("CONFIRMATION_REQUIRED");
+        assertThat(result.action().status()).isEqualTo("ASSESSMENT_ONLY");
     }
 }

@@ -22,6 +22,11 @@ public class LegalCorpusImportRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (Boolean.getBoolean("rag.legal.phase2b.index-only")) {
+            log.info("Phase 2B canonical index-only rebuild started, eligible={}", indexingService.eligibleChunkCount());
+            log.info("Phase 2B canonical index-only rebuild completed, indexed={}", indexingService.indexAll());
+            return;
+        }
         String configured = System.getProperty("rag.legal.phase2b.import-dir");
         if (configured == null || configured.isBlank()) {
             throw new IllegalArgumentException("Phase 2B import enabled but -Drag.legal.phase2b.import-dir is absent");

@@ -17,6 +17,7 @@ import com.safeguard.agent.rag.core.prompt.PromptTemplateLoader;
 import com.safeguard.agent.rag.dto.KbResult;
 import com.safeguard.agent.rag.dto.RetrievalContext;
 import com.safeguard.agent.rag.dto.SubQuestionIntent;
+import com.safeguard.agent.rag.dto.SubQuestionRetrievalTrace;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
@@ -88,7 +89,7 @@ public class RetrievalEngine {
                                 return new SubQuestionContext(
                                         si.subQuestion(), "", "", Map.of(),
                                         KnowledgeRetrievalResult.empty().eligibleIntentIds(
-                                                NodeScoreFilters.kb(si.nodeScores())));
+                                                NodeScoreFilters.kb(si.nodeScores())), List.of());
                             }
                         },
                         ragContextExecutor
@@ -100,7 +101,9 @@ public class RetrievalEngine {
 
         Map<String, List<RetrievedChunk>> mergedIntentChunks = new LinkedHashMap<>();
         Set<String> eligibleIntentIds = new LinkedHashSet<>();
+        List<SubQuestionRetrievalTrace> retrievalTraces = new ArrayList<>();
         for (SubQuestionContext context : contexts) {
+            retrievalTraces.add(new SubQuestionRetrievalTrace(context.question(), context.stageTraces()));
             eligibleIntentIds.addAll(context.eligibleIntentIds());
             if (CollUtil.isNotEmpty(context.intentChunks())) {
                 context.intentChunks().forEach((intentId, chunks) -> {
@@ -148,6 +151,7 @@ public class RetrievalEngine {
                 .kbContext(kbContext)
                 .intentChunks(mergedIntentChunks)
                 .eligibleIntentIds(Set.copyOf(eligibleIntentIds))
+                .retrievalTraces(List.copyOf(retrievalTraces))
                 .build();
     }
 
@@ -162,7 +166,7 @@ public class RetrievalEngine {
                 : "";
 
         return new SubQuestionContext(intent.subQuestion(), kbResult.groupedContext(), mcpContext,
-                kbResult.intentChunks(), kbResult.eligibleIntentIds());
+                kbResult.intentChunks(), kbResult.eligibleIntentIds(), kbResult.stageTraces());
     }
 
     private void appendSection(StringBuilder builder, String section, int index, String question, String context) {
@@ -197,14 +201,14 @@ public class RetrievalEngine {
         Set<String> eligibleIntentIds = retrievalResult.eligibleIntentIds(kbIntents);
 
         if (CollUtil.isEmpty(chunks)) {
-            return new KbResult("", Map.of(), eligibleIntentIds);
+            return new KbResult("", Map.of(), eligibleIntentIds, retrievalResult.stageTraces());
         }
 
         Map<String, List<RetrievedChunk>> intentChunks = retrievalResult.groupByIntent(MULTI_CHANNEL_KEY);
 
         String groupedContext = contextFormatter.formatKbContext(
                 kbIntents, eligibleIntentIds, chunks, budget.contextTopK());
-        return new KbResult(groupedContext, intentChunks, eligibleIntentIds);
+        return new KbResult(groupedContext, intentChunks, eligibleIntentIds, retrievalResult.stageTraces());
     }
 
     /**
@@ -301,6 +305,7 @@ public class RetrievalEngine {
                                       String kbContext,
                                       String mcpContext,
                                       Map<String, List<RetrievedChunk>> intentChunks,
-                                      Set<String> eligibleIntentIds) {
+                                      Set<String> eligibleIntentIds,
+                                      List<RetrievalStageTrace> stageTraces) {
     }
 }

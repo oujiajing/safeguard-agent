@@ -4,6 +4,7 @@ import com.safeguard.agent.framework.convention.ChatMessage;
 import com.safeguard.agent.infra.chat.LLMService;
 import com.safeguard.agent.rag.config.RAGConfigProperties;
 import com.safeguard.agent.rag.core.guidance.GuidanceDecision;
+import com.safeguard.agent.rag.core.answer.SemanticMultiQuestionCoverageEvaluator;
 import com.safeguard.agent.rag.core.guidance.IntentGuidanceService;
 import com.safeguard.agent.rag.core.intent.IntentNode;
 import com.safeguard.agent.rag.core.intent.IntentResolver;
@@ -52,6 +53,7 @@ class KnowledgeSearchFacadeTest {
     private final RetrievalEngine retrievalEngine = mock(RetrievalEngine.class);
     private final RAGPromptService promptService = mock(RAGPromptService.class);
     private final LLMService llmService = mock(LLMService.class);
+    private final SemanticMultiQuestionCoverageEvaluator coverageEvaluator = mock(SemanticMultiQuestionCoverageEvaluator.class);
 
     /**
      * 引用开关开着也不能漏：门面这条路不装配来源，锚点只能被抹掉不能被翻译成编号
@@ -163,7 +165,7 @@ class KnowledgeSearchFacadeTest {
         properties.setCitationEnabled(citationEnabled);
         when(guidanceService.detectAmbiguity(anyString(), anyList())).thenReturn(GuidanceDecision.none());
         return new KnowledgeSearchFacade(queryRewriteService, intentResolver, guidanceService, retrievalEngine,
-                new CitationContextEnricher(properties), promptService, llmService);
+                new CitationContextEnricher(properties), promptService, llmService, coverageEvaluator);
     }
 
     private void stubRetrievalHit() {

@@ -89,12 +89,12 @@ public class SearchChannelProperties implements InitializingBean {
         if (contextTopK <= 0) {
             throw new IllegalStateException("rag.search.default-top-k 必须为正数，当前：" + contextTopK);
         }
-        int resolvedRecall = resolveRecallBudget(contextTopK);
-        if (resolvedRecall < contextTopK) {
+        int configuredRecall = recallBudget > 0 ? recallBudget : contextTopK;
+        if (configuredRecall < contextTopK) {
             throw new IllegalStateException(String.format(
                     "检索预算漏斗不变式被破坏：recallBudget(%d) < contextTopK(%d)，召回扇出不得小于最终条数，"
                             + "请调大 rag.search.recall-budget 或调小 rag.search.default-top-k",
-                    resolvedRecall, contextTopK));
+                    configuredRecall, contextTopK));
         }
         int candidateLimit = resolveCandidateTopK();
         if (candidateLimit > 0 && candidateLimit < contextTopK) {

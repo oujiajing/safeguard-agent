@@ -59,6 +59,7 @@ class ReActAgentProviderTest {
 
         toolCatalog = spy(new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
+                mock(com.safeguard.agent.knowledge.service.KnowledgeDocumentService.class),
                 mock(AgentConversationService.class),
                 intentNodeRegistry,
                 mcpToolRegistry,
