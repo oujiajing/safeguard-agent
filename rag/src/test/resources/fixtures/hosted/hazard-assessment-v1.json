@@ -1,0 +1,48 @@
+{
+  "assessmentId": "assessment-contract-1",
+  "visualRunId": "run-contract-1",
+  "status": "ASSESSED",
+  "knowledgeUsed": true,
+  "workflowTrace": [
+    { "stage": "VISUAL_QUERY", "message": "楼梯口临边缺少防护", "executed": true },
+    { "stage": "RESULT", "message": "ASSESSED", "executed": true }
+  ],
+  "assessments": [
+    {
+      "candidateId": "candidate-contract-1",
+      "sourceAttachmentIds": ["attachment-contract-1"],
+      "hazardType": "临边防护",
+      "hazardDescription": "楼梯口临边缺少防护栏杆",
+      "visualJudgement": "SUSPECTED",
+      "visualConfidence": 0.72,
+      "visibleEvidence": ["楼梯口边缘可见，未见连续防护栏杆"],
+      "userProvidedContext": "二层通道",
+      "legalRetrievalQuery": "楼梯口临边缺少防护栏杆",
+      "legalQueryFacts": ["楼梯口", "临边", "缺少防护栏杆"],
+      "riskLevel": {
+        "value": "HIGH",
+        "confidence": null,
+        "basis": "存在高处坠落风险",
+        "requiresManualReview": true
+      },
+      "rectificationMeasures": ["设置牢固的临边防护栏杆"],
+      "acceptanceCriteria": ["防护栏杆连续、牢固并经现场验收"],
+      "aiReviewSuggestion": "HAZARD_LIKELY",
+      "legalEvidence": [
+        {
+          "evidenceId": "evidence-contract-1",
+          "documentTitle": "建筑施工高处作业安全技术规范",
+          "standardNo": "JGJ 80",
+          "clauseNo": "4.1",
+          "hierarchyPath": "第四章",
+          "contentRole": "CLAUSE",
+          "content": "临边作业应设置防护设施。",
+          "chunkId": "chunk-contract-1",
+          "pageNo": 12,
+          "retrievalScore": 0.93,
+          "rerankScore": 0.91
+        }
+      ]
+    }
+  ]
+}
