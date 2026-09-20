@@ -105,12 +105,14 @@ rag:
     type: pg  # 可选 milvus / pg
 
   keyword:
-    type: none  # 可选 none / es
+    type: es  # 可选 none / es
     es:
       uris: http://127.0.0.1:9200
-      index: rag_keyword_store  # 全库共享索引，按 collection_name 字段区分知识库
+      index: rag_keyword_store_v2  # 版本化索引；重建后再切换/删除旧索引
       analyzer: ik_max_word
       search-analyzer: ik_smart
+      fallback-analyzer: standard
+      fallback-search-analyzer: standard
 
   default:
     collection-name: rag_default_store
@@ -180,7 +182,7 @@ rag:
       vector:
         enabled: true       # 向量通道总开关
       keyword:
-        enabled: false      # 检索范围读引擎解析好的作用域，与向量通道同源
+        enabled: true       # 检索范围读引擎解析好的作用域，与向量通道同源
       web-search:
         enabled: false
         count: 5
@@ -196,7 +198,7 @@ rag:
         web-search: 0.5
     # 证据相关性闸门：检索只保证返回最像的 N 条，库里没答案时照样满额返回，这里补一道相关度下限
     evidence:
-      min-rerank-score: 0.2   # 整批最高精排分低于此值则整批丢弃，0=关闭；随 reranker 而变，换模型看「检索归因 - 精排分布」重测
+      min-rerank-score: ${SAFEGUARD_RAG_EVIDENCE_MIN_RERANK_SCORE:0.2}   # 整批最高精排分低于此值则整批丢弃，0=关闭；随 reranker 而变，换模型看「检索归因 - 精排分布」重测
 
   trace:
     enabled: true
@@ -225,6 +227,7 @@ ai:
       url: http://127.0.0.1:18083
       endpoints:
         embedding: /v1/embeddings
+        rerank: /rerank
     bailian:
       url: https://dashscope.aliyuncs.com
       api-key: ${BAILIAN_API_KEY:}
@@ -315,11 +318,12 @@ ai:
         priority: 3
 
   rerank:
-    default-model: qwen3-rerank
+    default-model: bge-reranker-v2-m3
     candidates:
-      - id: qwen3-rerank
-        provider: bailian
-        model: qwen3-rerank
+      - id: bge-reranker-v2-m3
+        provider: tei
+        model: bge-reranker-v2-m3
+        url: http://127.0.0.1:18084/rerank
         priority: 1
       - id: rerank-noop
         provider: noop

@@ -1,0 +1,717 @@
+dataset:
+  name: legal-retrieval-golden-set
+  version: "0.1-draft"
+  status: DRAFT_READY_FOR_SOLO_REVIEW
+  created_at: "2026-09-16"
+  knowledge_base_id: "2096156501948387328"
+  collection_name: "123123"
+  corpus_fingerprint: "1d94b8474ff34ca236a200f5d9a9f651"
+  active_document_count: 30
+  indexed_chunk_count: 5256
+  generated_case_count: 37
+  target_buckets: {SINGLE_CLAUSE: 20, NUMERIC: 5, COMPOUND: 10, UNANSWERABLE: 2}
+  notes:
+    - 正例ID均来自活动、启用且可检索的当前语料。
+    - 37题已完整生成，由唯一标注人对照问题与条款后选择正确、错误或不确定。
+    - v0.1采用条款生成问题：先固定可信条款或条款组合，再生成问题供单人对照确认。
+
+relevance_scale:
+  3: required_direct_evidence
+  2: sufficient_supporting_evidence
+  1: topical_but_insufficient
+  0: irrelevant_or_wrong_scope
+
+case_defaults:
+  generation_method: CLAUSE_TO_QUESTION
+  expected_scope: {knowledge_base_id: "2096156501948387328", collection_name: "123123"}
+  corpus_snapshot_ref: "1d94b8474ff34ca236a200f5d9a9f651"
+  hard_negative_chunks: []
+  annotator_ids: []
+  adjudicator_id: null
+  review_result: PENDING
+  annotation_note: 单人轻量版仅要求对照问题与条款，选择正确、错误或不确定；不确定项不得进入冻结测试集。
+
+cases:
+  - case_id: LRG-SEED-001
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 进入施工现场的人员对安全帽有什么要求？
+    question_type: DIRECT_CLAUSE
+    source_type: HUMAN_QUERY
+    scenario_tags: [个体防护, 安全帽, 物体打击]
+    answerability: ANSWERABLE
+    required_claims: [进入施工现场必须正确佩戴安全帽, 安全帽质量应符合GB2811]
+    gold_answer: 进入施工现场的人员必须正确佩戴安全帽，安全帽质量应符合现行国家标准GB 2811。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 2c55e4a2112c9ac4be50, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 6.0.5, relevance: 3}
+    hard_negative_chunks:
+      - {chunk_id: 7b1c979fcdc516e21118, document_id: "2096156555882942464", document_title: 施工现场机械设备检查技术规范, clause_no: 10.10.6, reason: 气瓶配件“安全帽”，不是人员PPE}
+    split_group_id: helmet-wearing-6.0.5
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-002
+    evaluation_bucket: NUMERIC
+    question: 施工现场有一个短边约500毫米的洞口，应采取什么措施？
+    question_type: SCENARIO_TO_RULE
+    source_type: VISUAL_FACT_TRANSCRIPTION
+    scenario_tags: [洞口, 物体打击, 封堵]
+    answerability: ANSWERABLE
+    visual_observation: 地面存在短边约500毫米的未封闭洞口
+    hazard_elements: {work_phase: 建筑施工, object: 洞口, unsafe_state: 未封堵, location: 作业面, risk_mechanism: 坠落或物体打击}
+    retrieval_subquestions: [短边边长或直径小于等于500毫米的洞口应采取什么防护措施？]
+    required_claims: [短边边长或直径小于等于500毫米的洞口应封堵]
+    gold_answer: 短边边长或直径小于或等于500毫米的洞口应采取封堵措施。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 20b165082b2e5d8657fd, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 6.0.4, relevance: 3}
+    split_group_id: opening-500mm-6.0.4
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-003
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 基坑施工设置栈桥或作业平台时，临边应如何防护？
+    question_type: SCENARIO_TO_RULE
+    source_type: VISUAL_FACT_TRANSCRIPTION
+    scenario_tags: [基坑, 作业平台, 临边防护]
+    answerability: ANSWERABLE
+    required_claims: [应设置临边防护栏杆]
+    gold_answer: 基坑施工设置栈桥或作业平台时，应设置临边防护栏杆。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: ce28b8f92fe78bc69976, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.2.4, relevance: 3}
+    split_group_id: foundation-pit-platform-edge-5.2.4
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-004
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 高处作业时劳动防护用品有什么明确要求？
+    question_type: REQUIRED_MEASURE
+    source_type: HUMAN_QUERY
+    scenario_tags: [高处作业, 安全带, 个体防护]
+    answerability: ANSWERABLE
+    required_claims: [高处作业时应系安全带]
+    gold_answer: 高处作业时应按规定系安全带。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ANY_ONE_SUFFICIENT
+        positive_chunks:
+          - {chunk_id: 01892970c02a9ed4db90, document_id: "2096156543337779200", document_title: 建筑机械使用安全技术规程, standard_no: JGJ 33-2018, clause_no: 2.0.5, relevance: 3}
+    split_group_id: work-at-height-harness-2.0.5
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-005
+    evaluation_bucket: NUMERIC
+    question: 施工现场架空线路的档距最大是多少？
+    question_type: NUMERIC_THRESHOLD
+    source_type: HUMAN_QUERY
+    scenario_tags: [临时用电, 架空线路, 档距]
+    answerability: ANSWERABLE
+    required_claims: [架空线路档距不应大于35米]
+    gold_answer: 架空线路的档距不应大于35米。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 7d5eaddabbbc73342f58, document_id: "2096156554624651264", document_title: 建筑与市政工程施工现场临时用电安全技术标准, clause_no: 6.1.6, relevance: 3}
+    split_group_id: overhead-line-span-35m
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-006
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 在狭小或密闭空间进行电焊、油漆或明火作业，至少应采取什么通风措施？
+    question_type: REQUIRED_MEASURE
+    source_type: BUSINESS_TEXT
+    scenario_tags: [有限空间, 电焊, 油漆, 通风]
+    answerability: ANSWERABLE
+    required_claims: [应保持空气流通]
+    gold_answer: 在狭小或密闭空间进行电焊、油漆、明火等作业时，应保持空气流通。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 1eefd46201c5e5448eb4, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 10.5.2, relevance: 3}
+    split_group_id: confined-space-airflow-10.5.2
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-007
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 模板支撑架能否与施工起重设备或施工脚手架连接？
+    question_type: PROHIBITED_ACTION
+    source_type: HUMAN_QUERY
+    scenario_tags: [模板工程, 支撑架, 起重设备, 脚手架]
+    answerability: ANSWERABLE
+    required_claims: [支撑架严禁与施工起重设备或施工脚手架等设施设备连接]
+    gold_answer: 支撑架严禁与施工起重设备、施工脚手架等设施或设备连接。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 9d8914805d653062c9f2, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.6.10, relevance: 3}
+    split_group_id: formwork-support-no-connection-4.6.10
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-008
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 施工现场在应急预案、物资和培训演练方面应做哪些准备？
+    question_type: MULTI_CLAIM_DIRECT
+    source_type: HUMAN_QUERY
+    scenario_tags: [应急预案, 应急物资, 培训, 演练]
+    answerability: ANSWERABLE
+    required_claims: [掌握综合专项和现场处置预案, 配备应急物资, 定期培训和演练]
+    gold_answer: 施工现场应掌握综合、专项和现场应急处置预案，配备应急物资，并定期开展培训和演练。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 00a04b332bedbcaefec7, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 3.0.14, relevance: 3}
+    split_group_id: emergency-preparedness-3.0.14
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-009
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 结构拆除过程中，对尚未拆除的剩余结构有什么安全要求？
+    question_type: SCENARIO_TO_RULE
+    source_type: BUSINESS_TEXT
+    scenario_tags: [拆除工程, 结构稳定]
+    answerability: ANSWERABLE
+    required_claims: [应保证剩余结构稳定]
+    gold_answer: 结构拆除过程中应保证剩余结构稳定。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 83b79295c450419fd514, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.11.6, relevance: 3}
+    split_group_id: demolition-remaining-stability-4.11.6
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-010
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 起吊过程中能不能快速升降？
+    question_type: COLLOQUIAL_PARAPHRASE
+    source_type: HUMAN_QUERY
+    scenario_tags: [起重机械, 起吊, 操作禁止]
+    answerability: ANSWERABLE
+    required_claims: [起吊中不得急速升降]
+    gold_answer: 起吊过程中不得急速升降。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 9a2c74b17fc7d0a7cd12, document_id: "2096156543337779200", document_title: 建筑机械使用安全技术规程, standard_no: JGJ 33-2018, clause_no: 4.6.26, relevance: 3}
+    split_group_id: hoisting-no-rapid-movement-4.6.26
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-011
+    evaluation_bucket: COMPOUND
+    question: 现场人员未戴安全帽且基坑作业平台临边无栏杆，分别应依据什么要求整改？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: VISUAL_FACT_TRANSCRIPTION
+    scenario_tags: [安全帽, 基坑, 作业平台, 临边防护]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [进入施工现场人员的安全帽佩戴要求是什么？, 基坑栈桥或作业平台的临边防护要求是什么？]
+    required_claims: [进入施工现场必须正确佩戴安全帽, 基坑作业平台应设置临边防护栏杆]
+    gold_answer: 现场人员必须正确佩戴符合GB 2811的安全帽；基坑栈桥或作业平台应设置临边防护栏杆。
+    gold_evidence_groups:
+      - group_id: PPE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 2c55e4a2112c9ac4be50, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 6.0.5, relevance: 3}
+      - group_id: EDGE_PROTECTION
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: ce28b8f92fe78bc69976, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.2.4, relevance: 3}
+    split_group_id: compound-helmet-foundation-pit-edge
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-012
+    evaluation_bucket: UNANSWERABLE
+    question: 核电站反应堆检修作业的辐射剂量限值是多少？
+    question_type: OUT_OF_CORPUS
+    source_type: HUMAN_QUERY
+    scenario_tags: [非建筑施工, 核电, 辐射]
+    answerability: UNANSWERABLE
+    gold_evidence_groups: []
+    hard_negative_chunks: []
+    unanswerable_reason: 当前知识库是建筑施工安全法规集合，不包含核电站辐射防护专门法规。
+    expected_behavior: 明确知识库证据不足，不引用主题相近但不适用的施工条款。
+    split_group_id: out-of-domain-nuclear-radiation
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-013
+    evaluation_bucket: COMPOUND
+    question: 雨雪结冰天气进行高处作业，人员防滑和安全带分别有什么要求？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [高处作业, 雨雪天气, 防滑, 安全带]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [冰霜雨雪天气高处作业应采取什么措施？, 高处作业对安全带有什么要求？]
+    required_claims: [应采取防滑措施, 高处作业时应系安全带]
+    gold_answer: 遇冰、霜、雨、雪天气进行高处作业应采取防滑措施，作业人员同时应按规定系安全带。
+    gold_evidence_groups:
+      - group_id: WEATHER
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 82d6c1b662be886b50cd, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.1.10, relevance: 3}
+      - group_id: HARNESS
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 01892970c02a9ed4db90, document_id: "2096156543337779200", document_title: 建筑机械使用安全技术规程, standard_no: JGJ 33-2018, clause_no: 2.0.5, relevance: 3}
+    split_group_id: compound-weather-height-harness
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-014
+    evaluation_bucket: COMPOUND
+    question: 悬空绑扎钢筋并进行钢结构安装时，安全带使用和作业层系挂条件分别有什么要求？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [悬空作业, 钢筋, 钢结构安装, 安全带, 安全绳]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [悬空绑扎钢筋时是否必须系安全带？, 钢结构安装作业层应提供什么安全带系挂条件？]
+    required_claims: [悬空绑扎钢筋时必须系好安全带, 安装作业层应设置安全绳]
+    gold_answer: 特殊情况下悬空绑扎钢筋必须系好安全带；钢结构安装作业层还应设置供作业人员系挂安全带的安全绳。
+    gold_evidence_groups:
+      - group_id: HARNESS_USE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 4196d27ffe7e40b0f9fc, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.5.7, relevance: 3}
+      - group_id: ANCHORAGE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 02e87fc0cd192d621978, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.7.4, relevance: 3}
+    split_group_id: compound-suspended-rebar-installation
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-015
+    evaluation_bucket: COMPOUND
+    question: 施工现场架空线路使用什么线缆，档距最大允许多少？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [临时用电, 架空线路, 绝缘导线, 档距]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [架空线应采用什么导线？, 架空线路档距上限是多少？]
+    required_claims: [架空线应采用绝缘导线或电缆, 档距不应大于35米]
+    gold_answer: 架空线应采用绝缘导线或电缆，架空线路档距不应大于35米。
+    gold_evidence_groups:
+      - group_id: CABLE_TYPE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: c8efd9225c15819ac387, document_id: "2096156554624651264", document_title: 建筑与市政工程施工现场临时用电安全技术标准, clause_no: 6.1.1, relevance: 3}
+      - group_id: SPAN
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 7d5eaddabbbc73342f58, document_id: "2096156554624651264", document_title: 建筑与市政工程施工现场临时用电安全技术标准, clause_no: 6.1.6, relevance: 3}
+    split_group_id: compound-overhead-line-type-span
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-016
+    evaluation_bucket: COMPOUND
+    question: 模板支撑架使用期间，能否连接起重设备或脚手架，能否擅自拆除构配件？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [模板支撑, 设备连接, 构配件拆除]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [支撑架能否与起重设备或脚手架连接？, 使用期间能否擅自拆除支撑架构配件？]
+    required_claims: [严禁与施工起重设备或脚手架连接, 严禁擅自拆除架体构配件]
+    gold_answer: 支撑架严禁与施工起重设备、施工脚手架等连接；使用期间严禁擅自拆除架体构配件。
+    gold_evidence_groups:
+      - group_id: CONNECTION
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 9d8914805d653062c9f2, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.6.10, relevance: 3}
+      - group_id: COMPONENT_REMOVAL
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: bd4273ba6ef0f23c125f, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.6.11, relevance: 3}
+    split_group_id: compound-formwork-support-prohibitions
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-017
+    evaluation_bucket: COMPOUND
+    question: 采用支架法拆除结构时，对剩余结构和支撑系统分别有什么要求？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [拆除工程, 剩余结构, 支撑系统]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [拆除过程中剩余结构应满足什么要求？, 支架法拆除应采用什么支撑系统？]
+    required_claims: [保证剩余结构稳定, 采用可靠支撑系统]
+    gold_answer: 拆除过程中应保证剩余结构稳定；采用支架法时应使用可靠的支撑系统。
+    gold_evidence_groups:
+      - group_id: REMAINING_STRUCTURE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 83b79295c450419fd514, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.11.6, relevance: 3}
+      - group_id: SUPPORT_SYSTEM
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: e1c77eed5b054418ed3d, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.11.9, relevance: 3}
+    split_group_id: compound-demolition-stability-support
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-018
+    evaluation_bucket: COMPOUND
+    question: 在狭小密闭空间进行焊接并可能产生有害物时，通风和有害物控制分别有什么要求？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [狭小空间, 焊接, 通风, 有害物控制]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [密闭空间焊接应采取什么通风措施？, 狭小空间施工如何控制有害物？]
+    required_claims: [保持空气流通, 采取措施使有害物控制在规定限度内]
+    gold_answer: 密闭空间焊接应保持空气流通；狭小空间施工还应采取措施，使有害物控制在规定限度内。
+    gold_evidence_groups:
+      - group_id: AIRFLOW
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 1eefd46201c5e5448eb4, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 10.5.2, relevance: 3}
+      - group_id: HARMFUL_SUBSTANCE_CONTROL
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 2eee85224af03f448ba2, document_id: "2096156543337779200", document_title: 建筑机械使用安全技术规程, standard_no: JGJ 33-2018, clause_no: 2.0.16, relevance: 3}
+    split_group_id: compound-confined-space-controls
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-019
+    evaluation_bucket: COMPOUND
+    question: 脚手架现场同时存在人员攀爬和架体底层未封闭，应分别依据什么要求整改？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [脚手架, 攀爬, 底层封闭]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [能否攀爬门式作业脚手架？, 悬挑式或附着升降脚手架底层应如何防护？]
+    required_claims: [不得攀爬门式作业脚手架, 底层应采取可靠封闭措施]
+    gold_answer: 不得攀爬门式作业脚手架；悬挑式或附着升降脚手架底层应采取可靠封闭措施。
+    gold_evidence_groups:
+      - group_id: CLIMBING
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 0520767cf574d32a15c8, document_id: "2096156549838950400", document_title: 建筑施工门式钢管脚手架安全技术标准, clause_no: 9.0.15, relevance: 3}
+      - group_id: BOTTOM_CLOSURE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 67c99e0d438a42cdb4c2, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 6.0.8, relevance: 3}
+    split_group_id: compound-scaffold-climbing-closure
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-020
+    evaluation_bucket: COMPOUND
+    question: 网架吊装作业在组织执行和起吊操作速度方面分别有什么要求？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [网架吊装, 施工组织设计, 起吊速度]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [网架吊装作业应按什么文件执行？, 起吊中能否急速升降？]
+    required_claims: [按施工组织设计规定执行, 起吊中不得急速升降]
+    gold_answer: 网架吊装作业应按施工组织设计执行；起吊过程中不得急速升降。
+    gold_evidence_groups:
+      - group_id: EXECUTION_PLAN
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 31e11eec44e990509395, document_id: "2096156550510039040", document_title: 建筑施工起重吊装工程安全技术规范, standard_no: JGJ 276-2012, clause_no: 7.1.1, relevance: 3}
+      - group_id: MOVEMENT_SPEED
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 9a2c74b17fc7d0a7cd12, document_id: "2096156543337779200", document_title: 建筑机械使用安全技术规程, standard_no: JGJ 33-2018, clause_no: 4.6.26, relevance: 3}
+    split_group_id: compound-lifting-plan-speed
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-021
+    evaluation_bucket: COMPOUND
+    question: 施工现场同时存在500毫米洞口未封堵和基坑作业平台临边无栏杆，应分别采取什么措施？
+    question_type: COMPOUND_MULTI_HAZARD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [洞口, 基坑, 作业平台, 临边防护]
+    answerability: ANSWERABLE
+    retrieval_subquestions: [500毫米及以下洞口应如何防护？, 基坑作业平台临边应如何防护？]
+    required_claims: [洞口应封堵, 基坑作业平台应设置临边防护栏杆]
+    gold_answer: 短边边长或直径不大于500毫米的洞口应封堵；基坑作业平台应设置临边防护栏杆。
+    gold_evidence_groups:
+      - group_id: OPENING
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 20b165082b2e5d8657fd, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 6.0.4, relevance: 3}
+      - group_id: EDGE
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: ce28b8f92fe78bc69976, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.2.4, relevance: 3}
+    split_group_id: compound-opening-foundation-pit-edge
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-022
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 高处作业能否使用座板式吊具或现场自制吊篮？
+    question_type: PROHIBITED_ACTION
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [高处作业, 座板式吊具, 自制吊篮]
+    answerability: ANSWERABLE
+    required_claims: [高处作业不得使用座板式吊具或自制吊篮]
+    gold_answer: 高处作业不得使用座板式吊具或自制吊篮。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 1254c841bbf66713d355, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 5.1.8, relevance: 3}
+    split_group_id: height-no-seat-board-homemade-platform
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-023
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 作业人员能否直接攀爬门式作业脚手架上下？
+    question_type: PROHIBITED_ACTION
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [门式脚手架, 攀爬]
+    answerability: ANSWERABLE
+    required_claims: [不得攀爬门式作业脚手架]
+    gold_answer: 不得攀爬门式作业脚手架。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 0520767cf574d32a15c8, document_id: "2096156549838950400", document_title: 建筑施工门式钢管脚手架安全技术标准, clause_no: 9.0.15, relevance: 3}
+    split_group_id: portal-scaffold-no-climbing
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-024
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 采用支架法拆除结构时，对支撑系统有什么要求？
+    question_type: REQUIRED_MEASURE
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [拆除工程, 支架法, 支撑系统]
+    answerability: ANSWERABLE
+    required_claims: [应采用可靠的支撑系统]
+    gold_answer: 采用支架法拆除结构时，应采用可靠的支撑系统。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: e1c77eed5b054418ed3d, document_id: "2096156552082903040", document_title: 建筑施工易发事故防治安全标准, clause_no: 4.11.9, relevance: 3}
+    split_group_id: demolition-reliable-support-system
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-025
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 监理单位发现施工现场存在严重安全事故隐患时，应如何处理？
+    question_type: RESPONSIBILITY
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [工程监理, 安全事故隐患, 停工, 报告]
+    answerability: ANSWERABLE
+    required_claims: [要求施工单位暂时停止施工, 及时报告建设单位]
+    gold_answer: 情况严重时，监理单位应要求施工单位暂时停止施工，并及时报告建设单位；施工单位拒不整改或不停工的，应及时向有关主管部门报告。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 09ae77822d24f7ab65a7, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第十四条, relevance: 3}
+    split_group_id: supervision-serious-hazard-response
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-026
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 起重信号工、爆破作业人员等特种作业人员上岗前应满足什么条件？
+    question_type: QUALIFICATION_REQUIREMENT
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [特种作业, 安全培训, 操作资格证]
+    answerability: ANSWERABLE
+    required_claims: [经过专门安全作业培训, 取得特种作业操作资格证书后方可上岗]
+    gold_answer: 特种作业人员必须经过专门的安全作业培训，并取得特种作业操作资格证书后方可上岗。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 3b17296fde6dab2b2f0a, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第二十五条, relevance: 3}
+    split_group_id: special-operation-training-certificate
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-027
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 建设工程施工前，安全施工技术要求应由谁向谁交底，是否需要签字确认？
+    question_type: RESPONSIBILITY
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [安全技术交底, 项目管理, 作业班组, 签字]
+    answerability: ANSWERABLE
+    required_claims: [项目管理技术人员向作业班组和作业人员详细说明, 双方签字确认]
+    gold_answer: 施工单位负责项目管理的技术人员应向施工作业班组和作业人员详细说明安全施工技术要求，并由双方签字确认。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: ed7f608715365041bd6d, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第二十七条, relevance: 3}
+    split_group_id: safety-technical-briefing-signature
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-028
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 建设工程概算中的安全施工措施费用能否挪作其他用途？
+    question_type: PROHIBITED_ACTION
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [安全生产费用, 专款专用]
+    answerability: ANSWERABLE
+    required_claims: [安全施工措施费用不得挪作他用]
+    gold_answer: 相关费用应当用于安全防护用具和设施、施工措施落实及安全生产条件改善，不得挪作他用。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 92bfe2e525b994326b8a, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第二十二条, relevance: 3}
+    split_group_id: safety-expense-no-diversion
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-029
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 建设工程实行施工总承包时，谁对施工现场安全生产负总责？
+    question_type: RESPONSIBILITY
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [施工总承包, 安全生产责任]
+    answerability: ANSWERABLE
+    required_claims: [总承包单位对施工现场安全生产负总责]
+    gold_answer: 建设工程实行施工总承包的，由总承包单位对施工现场安全生产负总责。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: e3337b0a58cdf99c1d5b, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第二十四条, relevance: 3}
+    split_group_id: general-contractor-overall-responsibility
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-030
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 建筑施工企业未取得安全生产许可证，能否从事生产活动？
+    question_type: LICENSE_REQUIREMENT
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [建筑施工企业, 安全生产许可证]
+    answerability: ANSWERABLE
+    required_claims: [未取得安全生产许可证不得从事生产活动]
+    gold_answer: 不能。建筑施工企业实行安全生产许可制度，未取得安全生产许可证不得从事生产活动。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 7cbe0796feec0f34d2f9, document_id: "2096156557220925440", document_title: 安全生产许可证条例, clause_no: 第二条, relevance: 3}
+    split_group_id: production-license-required
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-031
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 建筑施工企业安全生产许可证由哪一级主管部门负责颁发和管理？
+    question_type: RESPONSIBILITY
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [安全生产许可证, 颁发管理, 建设主管部门]
+    answerability: ANSWERABLE
+    required_claims: [省自治区直辖市人民政府建设主管部门负责颁发和管理]
+    gold_answer: 由省、自治区、直辖市人民政府建设主管部门负责颁发和管理，并接受国务院建设主管部门指导和监督。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 4a4000fd7f63b8a4251d, document_id: "2096156557220925440", document_title: 安全生产许可证条例, clause_no: 第四条, relevance: 3}
+    split_group_id: construction-license-authority
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-032
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 为建设工程提供机械设备和配件的单位，应配备哪些安全设施和装置？
+    question_type: REQUIRED_MEASURE
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [机械设备, 保险装置, 限位装置]
+    answerability: ANSWERABLE
+    required_claims: [配备齐全有效的保险限位等安全设施和装置]
+    gold_answer: 应按照安全施工要求配备齐全、有效的保险、限位等安全设施和装置。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: bba730cafcd0bb3d1252, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第十五条, relevance: 3}
+    split_group_id: machinery-insurance-limit-devices
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-033
+    evaluation_bucket: SINGLE_CLAUSE
+    question: 出租施工机械设备时，出租单位需要提供什么安全性能证明？
+    question_type: REQUIRED_DOCUMENT
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [机械设备出租, 安全性能检测, 合格证明]
+    answerability: ANSWERABLE
+    required_claims: [对安全性能进行检测, 签订租赁协议时出具检测合格证明]
+    gold_answer: 出租单位应检测机械设备和施工机具的安全性能，并在签订租赁协议时出具检测合格证明；检测不合格的不得出租。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: e96089eaf1b37f331c25, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第十六条, relevance: 3}
+    split_group_id: rental-machinery-test-certificate
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-034
+    evaluation_bucket: NUMERIC
+    question: 安全生产许可证有效期为几年，期满需要延期时应提前多久办理？
+    question_type: NUMERIC_THRESHOLD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [安全生产许可证, 有效期, 延期]
+    answerability: ANSWERABLE
+    required_claims: [有效期为3年, 期满前3个月办理延期]
+    gold_answer: 安全生产许可证有效期为3年；需要延期的，企业应在期满前3个月向原颁发管理机关办理延期手续。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 8e2d3b1b61eabe54fd21, document_id: "2096156557220925440", document_title: 安全生产许可证条例, clause_no: 第九条, relevance: 3}
+    split_group_id: license-validity-extension-period
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-035
+    evaluation_bucket: NUMERIC
+    question: 安全生产许可证颁发管理机关收到申请后，应在多少日内审查完毕？
+    question_type: NUMERIC_THRESHOLD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [安全生产许可证, 申请审查, 办理时限]
+    answerability: ANSWERABLE
+    required_claims: [自收到申请之日起45日内审查完毕]
+    gold_answer: 颁发管理机关应当自收到申请之日起45日内审查完毕。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 9de17c348d5965e9393a, document_id: "2096156557220925440", document_title: 安全生产许可证条例, clause_no: 第七条, relevance: 3}
+    split_group_id: license-application-review-45-days
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-036
+    evaluation_bucket: NUMERIC
+    question: 建设单位应在拆除工程施工多少日前报送备案资料？
+    question_type: NUMERIC_THRESHOLD
+    source_type: CLAUSE_GENERATED
+    scenario_tags: [拆除工程, 建设单位, 备案时限]
+    answerability: ANSWERABLE
+    required_claims: [拆除工程施工15日前报送资料]
+    gold_answer: 建设单位应当在拆除工程施工15日前，将规定资料报送有关主管部门备案。
+    gold_evidence_groups:
+      - group_id: G1
+        requirement: ALL_GROUPS_REQUIRED
+        positive_chunks:
+          - {chunk_id: 64397e712eee50e5cb9e, document_id: "2096156557736824832", document_title: 建设工程安全生产管理条例, clause_no: 第十一条, relevance: 3}
+    split_group_id: demolition-filing-15-days
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+  - case_id: LRG-SEED-037
+    evaluation_bucket: UNANSWERABLE
+    question: 民用机场跑道维护作业的航空器净空距离具体是多少？
+    question_type: OUT_OF_CORPUS
+    source_type: CORPUS_GAP_GENERATED
+    scenario_tags: [非建筑施工, 民用机场, 跑道维护, 航空器净空]
+    answerability: UNANSWERABLE
+    gold_evidence_groups: []
+    hard_negative_chunks: []
+    unanswerable_reason: 当前知识库是建筑施工安全法规集合，不包含民用航空机场运行和跑道维护专门法规。
+    expected_behavior: 明确当前知识库证据不足，不引用施工机械间距等词面相似条款。
+    split_group_id: out-of-domain-airport-clearance
+    annotation_status: DRAFT_NEEDS_LEGAL_REVIEW
+
+blocked_seed_candidates:
+  - {topic: 安全帽产品性能参数, reason: 专门文档《安全帽》GB 2811-2019为REVIEW且没有可检索片段}
+  - {topic: 建筑行业职业病危害预防控制规范标准号, reason: 数据库存储标准号与文档前言不一致}
+  - {topic: 石棉作业职业卫生管理规范标准号, reason: 数据库存储标准号与文档前言不一致}
+  - {topic: 消防规范条款, reason: 已发现标题与正文对应关系风险，需回查原PDF}

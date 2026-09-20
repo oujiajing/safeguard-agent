@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-20",
+  "dataset": {
+    "legalManifest": "rag/src/test/resources/fixtures/legal-retrieval/golden-set-v0.1-seed.yaml",
+    "legalCaseCount": 37,
+    "knowledgeBaseId": "2096156501948387328",
+    "collection": "123123",
+    "corpusFingerprint": "1d94b8474ff34ca236a200f5d9a9f651",
+    "indexedChunkCount": 5256,
+    "visualManifest": "rag/src/test/resources/fixtures/visual/manifest.yaml"
+  },
+  "legalQualityFramework": {
+    "partitionRule": "evaluation_bucket; four mutually exclusive buckets total 37 cases",
+    "buckets": {
+      "SINGLE_CLAUSE": {
+        "caseCount": 20,
+        "retrievalPrimary": ["goldHitAt5", "mrrAt20"],
+        "retrievalSecondary": ["hitAt1", "goldRank", "recallAt20"],
+        "generationPrimary": ["answerCorrectness", "faithfulness"],
+        "generationSecondary": ["claimCoverage", "citationPrecision", "citationRecall"]
+      },
+      "NUMERIC": {
+        "caseCount": 5,
+        "retrievalPrimary": ["goldHitAt5", "mrrAt5"],
+        "retrievalSecondary": ["hitAt1", "goldRank"],
+        "generationPrimary": ["numericExactMatch", "boundaryDirectionAccuracy"],
+        "generationSecondary": ["unitAccuracy", "answerCorrectness", "citationPrecision"]
+      },
+      "COMPOUND": {
+        "caseCount": 10,
+        "retrievalPrimary": ["allGoldHitAt5", "evidenceGroupRecallAt5"],
+        "retrievalSecondary": ["mrrAt20", "ndcgAt5", "missingEvidenceGroupCount"],
+        "generationPrimary": ["allClaimsCorrect", "faithfulness"],
+        "generationSecondary": ["claimCoverage", "citationRecall", "subQuestionOmissionRate"]
+      },
+      "UNANSWERABLE": {
+        "caseCount": 2,
+        "retrievalPrimary": ["correctEmptyEvidenceRate"],
+        "retrievalSecondary": ["falseEvidenceRate"],
+        "generationPrimary": ["correctRejectionRate"],
+        "generationSecondary": ["falseCitationRate", "unsupportedClaimRate"]
+      }
+    },
+    "overall": {
+      "primary": ["macroTaskAccuracy"],
+      "secondary": ["macroCorrectness", "macroFaithfulness", "citationPrecision", "citationRecall", "p50LatencyMs", "p95LatencyMs", "systemErrorRate"]
+    }
+  },
+  "baselines": {
+    "vector": {
+      "report": "outputs/legal-evaluation-v0.1/canonical-vector-123123-2026-09-18.json",
+      "finalEvidenceHitRate": 0.4285714286,
+      "compoundAllEvidenceGroupsHitRate": 0.5,
+      "unanswerableFalseCitationRate": 0.0,
+      "averageElapsedMs": 8033.03
+    },
+    "bm25StandardV2": {
+      "report": "outputs/legal-evaluation-v0.1/canonical-v2-fallback-bm25-2026-09-20.json",
+      "finalEvidenceHitRate": 0.4,
+      "compoundAllEvidenceGroupsHitRate": 0.4,
+      "unanswerableFalseCitationRate": 0.0,
+      "rawRecallStageHitRate": 0.6,
+      "averageElapsedMs": 3877.54
+    },
+    "hybridStandardV2": {
+      "report": "outputs/legal-evaluation-v0.1/canonical-v2-fallback-hybrid-2026-09-20.json",
+      "finalEvidenceHitRate": 0.4571428571,
+      "compoundAllEvidenceGroupsHitRate": 0.5,
+      "unanswerableFalseCitationRate": 0.0,
+      "rawRecallStageHitRate": 0.6857142857,
+      "fusionStageHitRate": 0.6857142857,
+      "rerankStageHitRate": 0.6857142857,
+      "averageElapsedMs": 4536.59
+    },
+    "hybridLatestLiveCandidate": {
+      "report": "outputs/legal-evaluation-v0.1/canonical-v2-fallback-hybrid-2026-09-20-metrics-live.json",
+      "status": "verified-run-not-frozen; runtime configuration fingerprint still missing",
+      "finalEvidenceHitRate": 0.7714285714,
+      "compoundAllEvidenceGroupsHitRateUnbounded": 0.6,
+      "singleClauseFinalGoldHitAt5": 0.65,
+      "numericFinalGoldHitAt5": 1.0,
+      "compoundFinalAllGoldHitAt5": 0.2,
+      "compoundFinalEvidenceGroupRecallAt5": 0.55,
+      "unanswerableFalseCitationRate": 0.0,
+      "averageElapsedMs": 6352.08
+    }
+  },
+  "suites": {
+    "static": ["STATIC-01"],
+    "retrieval-unit": ["RET-UNIT-01", "RET-UNIT-02"],
+    "hosted": ["HOST-01", "HOST-02"],
+    "deterministic": ["STATIC-01", "RET-UNIT-01", "RET-UNIT-02", "HOST-01", "HOST-02", "EVID-UNIT-01", "VIS-UNIT-01"],
+    "legal-live": ["RET-HYB-01", "EVID-01", "PERF-01"],
+    "phase61": ["E2E-01", "SAFE-01"],
+    "full": ["STATIC-01", "RET-UNIT-01", "RET-UNIT-02", "HOST-01", "HOST-02", "EVID-UNIT-01", "VIS-UNIT-01", "RET-HYB-01", "EVID-01", "PERF-01", "E2E-01", "SAFE-01"]
+  },
+  "cells": [
+    {"id":"STATIC-01","priority":"P0","kind":"automated","gate":"all assets parse and evaluator compiles"},
+    {"id":"RET-UNIT-01","priority":"P0","kind":"automated","gate":"all selected retrieval channel tests pass"},
+    {"id":"RET-UNIT-02","priority":"P0","kind":"automated","gate":"all selected postprocessor tests pass"},
+    {"id":"HOST-01","priority":"P0","kind":"automated","gate":"HostedHazardServiceTest passes"},
+    {"id":"HOST-02","priority":"P0","kind":"automated","gate":"HostedHazardControllerIntegrationTest passes"},
+    {"id":"EVID-UNIT-01","priority":"P0","kind":"automated","gate":"evidence selection and conservative no-answer tests pass"},
+    {"id":"VIS-UNIT-01","priority":"P0","kind":"automated","gate":"visual parsing, query building, and runner tests pass"},
+    {"id":"RET-VEC-01","priority":"P1","kind":"environment","gate":{"finalEvidenceHitRateMin":0.4285714286,"compoundAllEvidenceGroupsHitRateMin":0.5,"unanswerableFalseCitationRateMax":0.0,"errorCaseCountMax":0}},
+    {"id":"RET-BM25-01","priority":"P1","kind":"environment","gate":{"finalEvidenceHitRateMin":0.4,"compoundAllEvidenceGroupsHitRateMin":0.4,"rawRecallStageHitRateMin":0.6,"unanswerableFalseCitationRateMax":0.0,"errorCaseCountMax":0}},
+    {"id":"RET-HYB-01","priority":"P1","kind":"environment","gate":{"finalEvidenceHitRateMin":0.4571428571,"compoundAllEvidenceGroupsHitRateMin":0.5,"rawRecallStageHitRateMin":0.6857142857,"unanswerableFalseCitationRateMax":0.0,"errorCaseCountMax":0}},
+    {"id":"EVID-01","priority":"P1","kind":"environment","gate":"same report as RET-HYB-01; final evidence and unanswerable citation gates"},
+    {"id":"PERF-01","priority":"P2","kind":"observe","gate":"zero request errors; latency is warning-only until percentiles are emitted"},
+    {"id":"E2E-01","priority":"P1","kind":"environment","gate":"hosted loop succeeds with writeback disabled and no approval/order side effect"},
+    {"id":"SAFE-01","priority":"P0","kind":"environment","gate":"unauthorized business writes equal zero"},
+    {"id":"RET-IK-01","priority":"P2","kind":"blocked","blocker":"Elasticsearch 9.2.0 image has no compatible IK analyzer installed"},
+    {"id":"GEN-01","priority":"P1","kind":"gap","blocker":"no frozen claim coverage/faithfulness/citation precision evaluator"},
+    {"id":"VIS-01","priority":"P1","kind":"environment","gate":{"forbiddenHallucinationRateMax":0.0,"runnerErrorCountMax":0}},
+    {"id":"OPS-01","priority":"P2","kind":"gap","blocker":"fault-injection scenarios are not yet automated"}
+  ]
+}

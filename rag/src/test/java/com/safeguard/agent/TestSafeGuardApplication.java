@@ -2,8 +2,12 @@ package com.safeguard.agent;
 
 import com.mzt.logapi.starter.annotation.EnableLogRecord;
 import org.mybatis.spring.annotation.MapperScan;
+import org.redisson.api.RedissonClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 /**
  * rag 模块测试启动配置，注解镜像 bootstrap 的 SafeGuardApplication
@@ -21,4 +25,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "com.safeguard.agent.sample.dao.mapper"
 })
 public class TestSafeGuardApplication {
+    /** Unit/integration contexts must not require a developer's local Redis daemon. */
+    @Bean
+    RedissonClient redissonClient() {
+        return mock(RedissonClient.class, RETURNS_DEEP_STUBS);
+    }
+
 }

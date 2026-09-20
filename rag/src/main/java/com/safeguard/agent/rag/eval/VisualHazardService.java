@@ -52,13 +52,21 @@ public class VisualHazardService {
         Map<String, VisualHazardContext.Candidate> candidates = new HashMap<>();
         context.hazardCandidates().forEach(candidate -> candidates.put(candidate.candidateId(), candidate));
         List<HazardAssessmentResult> assessments = new ArrayList<>();
+        List<VisualLegalQueryBuilder.VisualLegalQuery> legalQueries = new ArrayList<>();
         for (VisualHazardConfirmationRequest.ConfirmedCandidate item : request.candidates() == null ? List.<VisualHazardConfirmationRequest.ConfirmedCandidate>of() : request.candidates()) {
             VisualHazardContext.Candidate original = candidates.get(item.candidateId());
             if (original == null) throw new IllegalArgumentException("candidateId 不属于本次分析");
             String description = item.description() == null || item.description().isBlank() ? original.description() : item.description();
-            assessments.add(assessmentService.assess(description, executionContext));
+            String operationObject = item.operationObject() == null || item.operationObject().isBlank()
+                    ? original.operationObject() : item.operationObject();
+            VisualLegalQueryBuilder.VisualLegalQuery legalQuery = VisualLegalQueryBuilder.build(
+                    original.hazardType(), operationObject, description, original.visibleEvidence(),
+                    original.potentialRisk(), original.judgement(), original.confidence(),
+                    original.needsManualVerification());
+            legalQueries.add(legalQuery);
+            assessments.add(assessmentService.assess(legalQuery.query(), executionContext));
         }
-        return new VisualConfirmationResult(analysisId, assessments, "CONFIRMATION_REQUIRED");
+        return new VisualConfirmationResult(analysisId, assessments, legalQueries, "CONFIRMATION_REQUIRED");
     }
 
     private byte[] decodeImage(String value) {
@@ -130,5 +138,7 @@ public class VisualHazardService {
         return all.contains("安全带") && (all.contains("未见") || all.contains("未看到") || all.contains("没有看到"));
     }
 
-    public record VisualConfirmationResult(String analysisId, List<HazardAssessmentResult> assessments, String status) {}
+    public record VisualConfirmationResult(String analysisId, List<HazardAssessmentResult> assessments,
+                                           List<VisualLegalQueryBuilder.VisualLegalQuery> legalQueries,
+                                           String status) {}
 }

@@ -11,7 +11,12 @@ public record HazardAssessmentResult(
         List<LegalEvidence> evidence,
         List<String> suggestion,
         Action action,
-        String assessmentId) {
+        String assessmentId,
+        LegalAnswerTrace trace) {
+    public HazardAssessmentResult(String hazard, String category, String riskLevel, String riskExplanation,
+            List<LegalEvidence> evidence, List<String> suggestion, Action action, String assessmentId) {
+        this(hazard, category, riskLevel, riskExplanation, evidence, suggestion, action, assessmentId, null);
+    }
 
     public record Action(
             boolean needCreateTask,

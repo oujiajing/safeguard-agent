@@ -56,5 +56,12 @@ public class KeywordProperties {
          * 查询分词器
          */
         private String searchAnalyzer = "ik_smart";
+
+        /**
+         * IK 插件缺失时的显式降级分词器；降级会记录告警，不伪装成 IK 已生效。
+         */
+        private String fallbackAnalyzer = "standard";
+
+        private String fallbackSearchAnalyzer = "standard";
     }
 }

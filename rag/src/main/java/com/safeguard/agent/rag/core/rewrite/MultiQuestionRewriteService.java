@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.safeguard.agent.rag.constant.RAGConstant.QUERY_REWRITE_AND_SPLIT_PROMPT_PATH;
 
@@ -54,7 +56,7 @@ public class MultiQuestionRewriteService implements QueryRewriteService {
     public RewriteResult rewriteWithSplit(String userQuestion, List<ChatMessage> history) {
         if (!ragConfigProperties.getQueryRewriteEnabled()) {
             String normalized = queryTermMappingService.normalize(userQuestion);
-            List<String> subs = ruleBasedSplit(normalized);
+            List<String> subs = deterministicOrRuleBasedSplit(normalized);
             return new RewriteResult(normalized, subs);
         }
 
@@ -70,7 +72,7 @@ public class MultiQuestionRewriteService implements QueryRewriteService {
         // 开关关闭：直接做规则归一化 + 规则拆分
         if (!ragConfigProperties.getQueryRewriteEnabled()) {
             String normalized = queryTermMappingService.normalize(userQuestion);
-            List<String> subs = ruleBasedSplit(normalized);
+            List<String> subs = deterministicOrRuleBasedSplit(normalized);
             return new RewriteResult(normalized, subs);
         }
 
@@ -98,6 +100,7 @@ public class MultiQuestionRewriteService implements QueryRewriteService {
             result = fallback;
         }
 
+        result = ensureCompoundSplit(normalizedQuestion, result);
         log.info("""
                 RAG用户问题查询改写+拆分：
                 原始问题：{}
@@ -106,6 +109,52 @@ public class MultiQuestionRewriteService implements QueryRewriteService {
                 子问题：{}
                 """, originalQuestion, normalizedQuestion, result.rewrittenQuestion(), result.subQuestions());
         return result;
+    }
+
+    /**
+     * LLM rewrite is probabilistic. Preserve a deterministic split for explicit Chinese
+     * multi-hazard markers so one compound query cannot silently consume one shared Top-K.
+     */
+    private RewriteResult ensureCompoundSplit(String question, RewriteResult result) {
+        if (result == null || result.subQuestions().size() > 1 || question == null) {
+            return result;
+        }
+        List<String> split = deterministicCompoundSplit(question);
+        return split.size() > 1 ? new RewriteResult(result.rewrittenQuestion(), split) : result;
+    }
+
+    private List<String> deterministicCompoundSplit(String question) {
+        String normalized = question.trim().replaceAll("[？?]$", "");
+        Matcher separateSubjects = Pattern.compile("^(.+?)[，,](.+?)(应?)(?:分别|各自)(.+)$").matcher(normalized);
+        if (separateSubjects.matches()) {
+            String prefix = separateSubjects.group(1).trim();
+            String subjects = separateSubjects.group(2).trim();
+            String verb = separateSubjects.group(3).trim();
+            String suffix = separateSubjects.group(4).trim();
+            List<String> pieces = Arrays.stream(subjects.split("(?:和|与|及|、)"))
+                    .map(String::trim).filter(StrUtil::isNotBlank)
+                    .map(subject -> prefix + "，" + subject + verb + suffix + "？")
+                    .toList();
+            if (pieces.size() > 1) return pieces;
+        }
+        Matcher separateClauses = Pattern.compile("^(.+?)[，,]\\s*(应?)分别(.+)$").matcher(normalized);
+        if (separateClauses.matches()) {
+            String prefix = separateClauses.group(1).trim();
+            String verb = separateClauses.group(2).trim();
+            String suffix = separateClauses.group(3).trim();
+            String subjectText = prefix.replaceFirst("^.*?同时存在", "");
+            List<String> pieces = Arrays.stream(subjectText.split("(?:且|和|与|及|、)"))
+                    .map(String::trim).filter(StrUtil::isNotBlank)
+                    .map(subject -> subject + verb + suffix + "？")
+                    .toList();
+            if (pieces.size() > 1) return pieces;
+        }
+        return List.of(normalized + "？");
+    }
+
+    private List<String> deterministicOrRuleBasedSplit(String question) {
+        List<String> compound = deterministicCompoundSplit(question);
+        return compound.size() > 1 ? compound : ruleBasedSplit(question);
     }
 
     private ChatRequest buildRewriteRequest(String systemPrompt,

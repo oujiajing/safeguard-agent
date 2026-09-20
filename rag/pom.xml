@@ -115,6 +115,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- LightRAG 客户端归属/删除谓词的 HTTP 桩测试，版本由 OkHttp BOM 统一管理 -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

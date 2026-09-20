@@ -181,13 +181,17 @@ public class EsKeywordIndexService implements KeywordIndexService {
             }
             String analyzer = keywordProperties.getEs().getAnalyzer();
             String searchAnalyzer = keywordProperties.getEs().getSearchAnalyzer();
-            esClient.indices().create(c -> c
-                    .index(index)
-                    .mappings(m -> m
-                            .properties("content", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
-                            .properties("collection_name", p -> p.keyword(k -> k))
-                            .properties("doc_id", p -> p.keyword(k -> k))
-                            .properties("chunk_index", p -> p.integer(i -> i))));
+            try {
+                createSharedIndex(index, analyzer, searchAnalyzer);
+            } catch (Exception e) {
+                if (!analyzerUnavailable(e) || analyzer.equals(keywordProperties.getEs().getFallbackAnalyzer())) {
+                    throw e;
+                }
+                log.warn("ES analyzer {} 不可用，使用显式 fallback={} 创建索引；安装 IK 后需重建索引才能启用 IK",
+                        analyzer, keywordProperties.getEs().getFallbackAnalyzer());
+                createSharedIndex(index, keywordProperties.getEs().getFallbackAnalyzer(),
+                        keywordProperties.getEs().getFallbackSearchAnalyzer());
+            }
             log.info("ES 关键词共享索引已创建, index={}, analyzer={}/{}", index, analyzer, searchAnalyzer);
         } catch (Exception e) {
             if (isAlreadyExists(e)) {
@@ -210,8 +214,44 @@ public class EsKeywordIndexService implements KeywordIndexService {
         doc.put("collection_name", collectionName);
         doc.put("doc_id", docId);
         doc.put("chunk_index", chunk.index());
-        doc.putAll(chunk.metadata().toMap());
+        Map<String, Object> metadata = chunk.metadata().toMap();
+        doc.putAll(metadata);
+        doc.put("retrieval_text", retrievalText(content, metadata));
         return doc;
+    }
+
+    private void createSharedIndex(String index, String analyzer, String searchAnalyzer) throws Exception {
+        esClient.indices().create(c -> c
+                .index(index)
+                .mappings(m -> m
+                        .properties("content", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
+                        .properties("retrieval_text", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
+                        .properties("doc_title", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
+                        .properties("chapter_title", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
+                        .properties("section_title", p -> p.text(t -> t.analyzer(analyzer).searchAnalyzer(searchAnalyzer)))
+                        .properties("standard_no", p -> p.keyword(k -> k))
+                        .properties("clause_no", p -> p.keyword(k -> k))
+                        .properties("collection_name", p -> p.keyword(k -> k))
+                        .properties("doc_id", p -> p.keyword(k -> k))
+                        .properties("chunk_index", p -> p.integer(i -> i))));
+    }
+
+    private boolean analyzerUnavailable(Exception e) {
+        String message = e.getMessage();
+        return message != null && (message.contains("failed to find global analyzer")
+                || message.contains("failed to find analyzer")
+                || message.contains("has not been configured in mappings"));
+    }
+
+    private String retrievalText(String content, Map<String, Object> metadata) {
+        StringBuilder text = new StringBuilder(content == null ? "" : content);
+        for (String key : List.of("doc_title", "standard_no", "chapter_title", "section_title", "clause_no")) {
+            Object value = metadata.get(key);
+            if (value != null && !value.toString().isBlank()) {
+                text.append('\n').append(value);
+            }
+        }
+        return text.length() > MAX_CONTENT_LENGTH ? text.substring(0, MAX_CONTENT_LENGTH) : text.toString();
     }
 
     private String sharedIndex() {

@@ -50,7 +50,11 @@ public class EsKeywordRetrieverService implements KeywordRetrieverService {
                             .ignoreUnavailable(true)
                             .allowNoIndices(true)
                             .query(q -> q.bool(b -> {
-                                b.must(m -> m.match(mt -> mt.field("content").query(query)));
+                                b.must(m -> m.multiMatch(mm -> mm
+                                        .fields("retrieval_text^1.0", "content^1.0", "doc_title^2.0",
+                                                "chapter_title^1.5", "section_title^1.5", "standard_no^3.0",
+                                                "clause_no^4.0")
+                                        .query(query)));
                                 // 空表示不限库（全局）；否则以 collection_name terms 限定目标知识库范围
                                 if (!collectionFilter.isEmpty()) {
                                     b.filter(f -> f.terms(t -> t

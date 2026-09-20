@@ -1,6 +1,7 @@
 package com.safeguard.agent.rag.dto;
 
 import com.safeguard.agent.framework.convention.RetrievedChunk;
+import com.safeguard.agent.rag.core.retrieval.RetrievalStageTrace;
 
 import java.util.List;
 import java.util.Map;
@@ -15,5 +16,10 @@ import java.util.Set;
  */
 public record KbResult(String groupedContext,
                        Map<String, List<RetrievedChunk>> intentChunks,
-                       Set<String> eligibleIntentIds) {
+                       Set<String> eligibleIntentIds,
+                       List<RetrievalStageTrace> stageTraces) {
+    public KbResult(String groupedContext, Map<String, List<RetrievedChunk>> intentChunks,
+                    Set<String> eligibleIntentIds) {
+        this(groupedContext, intentChunks, eligibleIntentIds, List.of());
+    }
 }

@@ -69,12 +69,27 @@ public class MultiChannelRetrievalEngine {
             return KnowledgeRetrievalResult.empty();
         }
 
-        List<RetrievedChunk> chunks = executePostProcessors(channelResults, context);
+        List<RetrievedChunk> rawChunks = channelResults.stream()
+                .flatMap(result -> result.getChunks().stream()).toList();
+        ProcessedChunks processed = executePostProcessors(channelResults, context);
+        List<RetrievedChunk> chunks = processed.chunks();
         // 异常或超时导致定向证据为空时，保留的定向范围会使其按未命中处理
         return new KnowledgeRetrievalResult(
                 chunks,
                 deriveAttribution(chunks, context.getRetrievalScope()),
-                context.getRetrievalScope().directedIntentIds());
+                context.getRetrievalScope().directedIntentIds(),
+                prependRawTrace(rawChunks, processed.traces()));
+    }
+
+    private List<RetrievalStageTrace> prependRawTrace(List<RetrievedChunk> raw, List<RetrievalStageTrace> traces) {
+        List<RetrievalStageTrace> result = new java.util.ArrayList<>();
+        result.add(new RetrievalStageTrace("RAW_RECALL", ids(raw)));
+        result.addAll(traces);
+        return List.copyOf(result);
+    }
+
+    private List<String> ids(List<RetrievedChunk> chunks) {
+        return chunks.stream().map(RetrievedChunk::getId).filter(Objects::nonNull).distinct().toList();
     }
 
     /**
@@ -181,8 +196,8 @@ public class MultiChannelRetrievalEngine {
         return results;
     }
 
-    private List<RetrievedChunk> executePostProcessors(List<SearchChannelResult> results,
-                                                       SearchContext context) {
+    private ProcessedChunks executePostProcessors(List<SearchChannelResult> results,
+                                                  SearchContext context) {
         List<SearchResultPostProcessor> enabledProcessors = postProcessors.stream()
                 .filter(processor -> processor.isEnabled(context))
                 .sorted(Comparator.comparingInt(SearchResultPostProcessor::getOrder))
@@ -190,9 +205,10 @@ public class MultiChannelRetrievalEngine {
 
         if (enabledProcessors.isEmpty()) {
             log.warn("没有启用的后置处理器，直接返回原始结果");
-            return results.stream()
+            List<RetrievedChunk> raw = results.stream()
                     .flatMap(r -> r.getChunks().stream())
                     .collect(Collectors.toList());
+            return new ProcessedChunks(raw, List.of(new RetrievalStageTrace("NO_POST_PROCESSORS", ids(raw))));
         }
 
         List<RetrievedChunk> chunks = results.stream()
@@ -201,6 +217,7 @@ public class MultiChannelRetrievalEngine {
 
         int initialSize = chunks.size();
 
+        List<RetrievalStageTrace> traces = new java.util.ArrayList<>();
         for (SearchResultPostProcessor processor : enabledProcessors) {
             try {
                 int beforeSize = chunks.size();
@@ -213,6 +230,7 @@ public class MultiChannelRetrievalEngine {
                         afterSize,
                         (afterSize - beforeSize > 0 ? "+" : "") + (afterSize - beforeSize)
                 );
+                traces.add(new RetrievalStageTrace(processor.getName(), ids(chunks)));
             } catch (Exception e) {
                 log.error("后置处理器 {} 执行失败，跳过该处理器", processor.getName(), e);
             }
@@ -221,8 +239,10 @@ public class MultiChannelRetrievalEngine {
         log.info("后置处理器链执行完成 - 初始: {} 个 Chunk, 最终: {} 个 Chunk",
                 initialSize, chunks.size());
 
-        return chunks;
+        return new ProcessedChunks(chunks, traces);
     }
+
+    private record ProcessedChunks(List<RetrievedChunk> chunks, List<RetrievalStageTrace> traces) {}
 
     /**
      * 通道级超时：超过预算的通道按空结果降级，不让最慢一条钳制同一子问题里其余通道的融合

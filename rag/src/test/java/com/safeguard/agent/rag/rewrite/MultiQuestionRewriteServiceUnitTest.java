@@ -29,4 +29,40 @@ class MultiQuestionRewriteServiceUnitTest {
         assertThat(result.rewrittenQuestion()).isEqualTo("脚手架问题；临边问题");
         assertThat(result.subQuestions()).containsExactly("脚手架问题？", "临边问题？");
     }
+
+    @Test
+    void deterministicSplitPreservesSeparateRequirementsWhenLlmRewriteIsUnavailable() {
+        LLMService llm = mock(LLMService.class);
+        RAGConfigProperties config = new RAGConfigProperties();
+        config.setQueryRewriteEnabled(false);
+        QueryTermMappingService mappings = mock(QueryTermMappingService.class);
+        PromptTemplateLoader loader = mock(PromptTemplateLoader.class);
+        String question = "雨雪结冰天气进行高处作业，人员防滑和安全带分别有什么要求？";
+        when(mappings.normalize(question)).thenReturn(question);
+
+        MultiQuestionRewriteService service = new MultiQuestionRewriteService(llm, config, mappings, loader);
+        RewriteResult result = service.rewriteWithSplit(question, java.util.List.of());
+
+        assertThat(result.subQuestions()).containsExactly(
+                "雨雪结冰天气进行高处作业，人员防滑有什么要求？",
+                "雨雪结冰天气进行高处作业，安全带有什么要求？");
+    }
+
+    @Test
+    void deterministicSplitHandlesTwoVisibleHazardsWithSeparateAction() {
+        LLMService llm = mock(LLMService.class);
+        RAGConfigProperties config = new RAGConfigProperties();
+        config.setQueryRewriteEnabled(false);
+        QueryTermMappingService mappings = mock(QueryTermMappingService.class);
+        PromptTemplateLoader loader = mock(PromptTemplateLoader.class);
+        String question = "施工现场同时存在500毫米洞口未封堵和基坑作业平台临边无栏杆，应分别采取什么措施？";
+        when(mappings.normalize(question)).thenReturn(question);
+
+        MultiQuestionRewriteService service = new MultiQuestionRewriteService(llm, config, mappings, loader);
+        RewriteResult result = service.rewriteWithSplit(question, java.util.List.of());
+
+        assertThat(result.subQuestions()).containsExactly(
+                "500毫米洞口未封堵应采取什么措施？",
+                "基坑作业平台临边无栏杆应采取什么措施？");
+    }
 }

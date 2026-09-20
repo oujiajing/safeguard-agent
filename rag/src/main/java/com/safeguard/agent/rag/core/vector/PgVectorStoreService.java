@@ -29,7 +29,8 @@ public class PgVectorStoreService implements VectorStoreService {
 
         // noinspection SqlDialectInspection,SqlNoDataSourceInspection
         jdbcTemplate.batchUpdate(
-                "INSERT INTO t_knowledge_vector (id, collection_name, content, metadata, embedding) VALUES (?, ?, ?, ?::jsonb, ?::vector)",
+                "INSERT INTO t_knowledge_vector (id, collection_name, content, metadata, embedding) VALUES (?, ?, ?, ?::jsonb, ?::vector) " +
+                        "ON CONFLICT (id) DO UPDATE SET collection_name = EXCLUDED.collection_name, content = EXCLUDED.content, metadata = EXCLUDED.metadata, embedding = EXCLUDED.embedding",
                 chunks, chunks.size(), (ps, chunk) -> {
                     ps.setString(1, chunk.chunkId());
                     ps.setString(2, collectionName);

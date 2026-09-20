@@ -18,7 +18,14 @@ import java.util.stream.Collectors;
 
 public record KnowledgeRetrievalResult(List<RetrievedChunk> chunks,
                                        Map<String, Set<String>> intentIdsByChunkKey,
-                                       Set<String> directedIntentIds) {
+                                       Set<String> directedIntentIds,
+                                       List<RetrievalStageTrace> stageTraces) {
+
+    public KnowledgeRetrievalResult(List<RetrievedChunk> chunks,
+                                    Map<String, Set<String>> intentIdsByChunkKey,
+                                    Set<String> directedIntentIds) {
+        this(chunks, intentIdsByChunkKey, directedIntentIds, List.of());
+    }
 
     public KnowledgeRetrievalResult {
         chunks = chunks == null ? List.of() : chunks;
@@ -26,10 +33,11 @@ public record KnowledgeRetrievalResult(List<RetrievedChunk> chunks,
         directedIntentIds = directedIntentIds == null
                 ? Set.of()
                 : Set.copyOf(directedIntentIds);
+        stageTraces = stageTraces == null ? List.of() : List.copyOf(stageTraces);
     }
 
     public static KnowledgeRetrievalResult empty() {
-        return new KnowledgeRetrievalResult(List.of(), Map.of(), Set.of());
+        return new KnowledgeRetrievalResult(List.of(), Map.of(), Set.of(), List.of());
     }
 
     public Set<String> retrievedIntentIds() {

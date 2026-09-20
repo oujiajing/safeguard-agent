@@ -37,6 +37,9 @@ public class RetrievalContext {
     @Builder.Default
     private Set<String> eligibleIntentIds = Set.of();
 
+    @Builder.Default
+    private List<SubQuestionRetrievalTrace> retrievalTraces = List.of();
+
     /**
      * 是否存在 MCP 上下文
      */

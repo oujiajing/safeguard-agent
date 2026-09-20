@@ -17,13 +17,13 @@ class SearchChannelPropertiesTest {
     @DisplayName("recallBudget 默认取绝对值，=0 时回退 contextTopK，>0 用显式值")
     void resolveRecallBudget() {
         SearchChannelProperties props = new SearchChannelProperties();
-        assertEquals(20, props.resolveRecallBudget(10), "默认 recall-budget=20 为绝对每通道召回条数");
+        assertEquals(40, props.resolveRecallBudget(10), "默认候选池为 40，召回预算必须至少覆盖该候选池");
 
         props.setRecallBudget(0);
-        assertEquals(10, props.resolveRecallBudget(10), "recall-budget=0 应回退到 contextTopK 作兜底守卫");
+        assertEquals(40, props.resolveRecallBudget(10), "recall-budget=0 仍须覆盖默认候选池");
 
         props.setRecallBudget(30);
-        assertEquals(30, props.resolveRecallBudget(10), "显式 recall-budget 应优先");
+        assertEquals(40, props.resolveRecallBudget(10), "显式值小于候选池时应提升到候选池大小");
     }
 
     @Test
