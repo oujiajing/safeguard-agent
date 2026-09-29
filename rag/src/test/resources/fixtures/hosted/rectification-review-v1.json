@@ -1,0 +1,19 @@
+{
+  "reviewId": "review-contract-1",
+  "orderId": "order-contract-1",
+  "orderVersion": 4,
+  "inputDigest": "sha256:review-input-1",
+  "status": "REVIEWED",
+  "criterionResults": [
+    { "criterion": "防护栏杆连续、牢固", "result": "PASS", "evidence": ["after-attachment-1"], "reason": "整改后图片可见连续栏杆" }
+  ],
+  "remainingRisks": [],
+  "missingMaterials": [],
+  "overallSuggestion": "SUGGEST_ACCEPT",
+  "confidence": 0.86,
+  "requiresManualReview": true,
+  "workflowTrace": [
+    { "stage": "COMPARE_EVIDENCE", "message": "对比整改前后现场证据", "executed": true },
+    { "stage": "RESULT", "message": "SUGGEST_ACCEPT", "executed": true }
+  ]
+}

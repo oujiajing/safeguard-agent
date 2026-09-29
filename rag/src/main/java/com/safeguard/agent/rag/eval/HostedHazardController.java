@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 @ConditionalOnProperty(prefix = "safeguard.eval", name = "enabled", havingValue = "true")
 public class HostedHazardController {
     private final HostedHazardService service;
+    private final HostedRectificationService rectificationService;
     private final SafeGuardServiceProperties serviceProperties;
 
     @PostMapping("/visual-analysis")
@@ -30,6 +32,13 @@ public class HostedHazardController {
                                    HttpServletRequest httpRequest) {
         requireService(httpRequest);
         return service.analyze(request);
+    }
+
+    /** Lightweight startup probe. It verifies service identity without invoking a model. */
+    @GetMapping("/health")
+    public Map<String, String> health(HttpServletRequest httpRequest) {
+        requireService(httpRequest);
+        return Map.of("status", "UP");
     }
 
     @PostMapping("/hazard-assessments")
@@ -44,6 +53,22 @@ public class HostedHazardController {
                                                      HttpServletRequest httpRequest) {
         requireService(httpRequest);
         return service.assessmentDetail(assessmentId);
+    }
+
+    @PostMapping("/rectification-reviews")
+    public HostedRectificationReviewResponse rectificationReview(
+            @Valid @RequestBody HostedRectificationReviewRequest request,
+            HttpServletRequest httpRequest) {
+        requireService(httpRequest);
+        return rectificationService.review(request);
+    }
+
+    @PostMapping("/rectification-summaries")
+    public HostedRectificationSummaryResponse rectificationSummary(
+            @Valid @RequestBody HostedRectificationSummaryRequest request,
+            HttpServletRequest httpRequest) {
+        requireService(httpRequest);
+        return rectificationService.summary(request);
     }
 
     private void requireService(HttpServletRequest request) {

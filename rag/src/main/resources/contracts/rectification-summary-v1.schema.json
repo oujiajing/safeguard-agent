@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safeguard-agent/contracts/rectification-summary-v1.schema.json",
+  "title": "SafeGuard Rectification Summary v1",
+  "description": "Read-only generated summary of a closed rectification order. It never changes order facts or acceptance state.",
+  "type": "object",
+  "required": ["summaryId", "orderId", "orderVersion", "status", "sections", "citations", "generationTrace"],
+  "properties": {
+    "summaryId": { "type": "string", "minLength": 1 },
+    "orderId": { "type": "string", "minLength": 1 },
+    "orderVersion": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["DRAFT", "CONFIRMED", "STALE"] },
+    "sourceDigest": { "type": "string", "minLength": 1 },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "title", "content", "sourceRefs"],
+        "properties": {
+          "key": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "sourceRefs": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "citations": { "type": "array", "items": { "type": "string" } },
+    "generationTrace": { "type": "array", "items": { "$ref": "#/$defs/trace" } }
+  },
+  "$defs": {
+    "trace": {
+      "type": "object",
+      "required": ["stage", "message", "executed"],
+      "properties": { "stage": { "type": "string" }, "message": { "type": "string" }, "executed": { "type": "boolean" } },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

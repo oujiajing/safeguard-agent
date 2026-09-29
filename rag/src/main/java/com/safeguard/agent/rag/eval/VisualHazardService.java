@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisualHazardService {
     private static final String SYSTEM_PROMPT = "只输出一个JSON对象，不要Markdown。字段：scene:string，hazardCandidates:array。每个候选字段：candidateId不要输出、hazardType:string、operationObject:string、description:string、visibleEvidence:array of strings、potentialRisk:string、judgement只能CONFIRMED/SUSPECTED/UNKNOWN、confidence:number 0到1、needsManualVerification:boolean。只写图片可观察事实；用户文字只能保留为userProvidedContext，不能写入visibleEvidence。对每个可见人员必须逐项检查：安全帽是否佩戴、可见安全带是否系挂、反光背心/防护服是否穿戴；对每个临边、洞口、楼梯口必须检查是否有可见护栏、盖板或警戒。安全带规则：只有在画面清晰可见安全带本体、挂点或错误系挂状态时，才可输出安全带候选；仅仅“未见安全带”绝不允许输出“未佩戴安全带”或“高处作业无防护”。同理不要推断尺寸、证件、检测值、荷载、接地电阻。无法确认时只能UNKNOWN或SUSPECTED，needsManualVerification=true。不得生成法规、整改任务、责任人或期限。";
+    private static final String RECTIFICATION_SYSTEM_PROMPT = "只输出一个JSON对象，不要Markdown。字段：scene:string，hazardCandidates:array。每个候选字段：candidateId不要输出、hazardType:string、operationObject:string、description:string、visibleEvidence:array of strings、potentialRisk:string、judgement只能CONFIRMED/SUSPECTED/UNKNOWN、confidence:number 0到1、needsManualVerification:boolean。这是整改后图片复核：验收标准/整改措施是判定条件，不是隐患本身。只有图片明确显示不满足条件时才输出候选并使用CONFIRMED；图片明确显示满足条件时不要输出候选；无法从图片观察的尺寸、证件、检测值、荷载、接地电阻才使用UNKNOWN或SUSPECTED。不要因为无法证明国家标准条文或培训效果而把可见合规行为判为UNKNOWN。不得生成法规、整改任务、责任人或期限。";
 
     private final VisualHazardProperties properties;
     private final ObjectMapper mapper;
@@ -78,6 +79,9 @@ public class VisualHazardService {
 
     private String callVlm(byte[] image, String description) {
         try {
+            String systemPrompt = description != null && description.startsWith("[RECTIFICATION_REVIEW]")
+                    ? RECTIFICATION_SYSTEM_PROMPT
+                    : SYSTEM_PROMPT;
             Map<String, Object> user = new HashMap<>();
             user.put("role", "user");
             user.put("content", description == null ? "仅依据图片提取可观察安全现象；无法判断则UNKNOWN。" : description);
@@ -88,7 +92,7 @@ public class VisualHazardService {
             body.put("think", false);
             body.put("format", "json");
             body.put("options", Map.of("temperature", 0, "num_ctx", 4096, "num_predict", 512));
-            body.put("messages", List.of(Map.of("role", "system", "content", SYSTEM_PROMPT), user));
+            body.put("messages", List.of(Map.of("role", "system", "content", systemPrompt), user));
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(properties.getBaseUrl().replaceAll("/$", "") + "/api/chat"))
                     .timeout(Duration.ofSeconds(120))
