@@ -39,7 +39,9 @@ class HostedHazardControllerIntegrationTest {
         HostedHazardService service = new HostedHazardService(visual, assessment, new MemoryVisualRuns(), new MemoryAssessments());
         SafeGuardServiceProperties properties = org.mockito.Mockito.mock(SafeGuardServiceProperties.class);
         when(properties.getToken()).thenReturn(TOKEN);
-        mvc = MockMvcBuilders.standaloneSetup(new HostedHazardController(service, properties)).build();
+        HostedRectificationService rectificationService = org.mockito.Mockito.mock(HostedRectificationService.class);
+        mvc = MockMvcBuilders.standaloneSetup(
+                new HostedHazardController(service, rectificationService, properties)).build();
     }
 
     @Test
