@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safeguard-agent/contracts/hosted-hazard-assessment-v1.schema.json",
+  "title": "SafeGuard Hosted Hazard Assessment v1",
+  "description": "Read-only response returned by /agent/v1/hosted/hazard-assessments and its readback endpoint. This contract must never contain an order identifier, confirmation operation, or other business-write command.",
+  "type": "object",
+  "required": ["assessmentId", "visualRunId", "status", "knowledgeUsed", "workflowTrace", "assessments"],
+  "properties": {
+    "assessmentId": { "type": "string", "minLength": 1 },
+    "visualRunId": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["ASSESSED", "NO_RELEVANT_EVIDENCE"] },
+    "knowledgeUsed": { "type": "boolean" },
+    "workflowTrace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stage", "message", "executed"],
+        "properties": {
+          "stage": { "type": "string", "minLength": 1 },
+          "message": { "type": "string" },
+          "executed": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assessments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assessmentItem" }
+    }
+  },
+  "$defs": {
+    "assessmentItem": {
+      "type": "object",
+      "required": ["candidateId", "sourceAttachmentIds", "hazardType", "hazardDescription", "visualJudgement", "visualConfidence", "visibleEvidence", "legalQueryFacts", "riskLevel", "rectificationMeasures", "acceptanceCriteria", "aiReviewSuggestion", "legalEvidence"],
+      "properties": {
+        "candidateId": { "type": "string", "minLength": 1 },
+        "sourceAttachmentIds": { "type": "array", "items": { "type": "string" } },
+        "hazardType": { "type": "string" },
+        "hazardDescription": { "type": "string" },
+        "visualJudgement": { "type": "string" },
+        "visualConfidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "visibleEvidence": { "type": "array", "items": { "type": "string" } },
+        "userProvidedContext": { "type": ["string", "null"] },
+        "legalRetrievalQuery": { "type": ["string", "null"] },
+        "legalQueryFacts": { "type": "array", "items": { "type": "string" } },
+        "riskLevel": { "$ref": "#/$defs/riskLevel" },
+        "rectificationMeasures": { "type": "array", "items": { "type": "string" } },
+        "acceptanceCriteria": { "type": "array", "items": { "type": "string" } },
+        "aiReviewSuggestion": { "type": "string", "enum": ["HAZARD_LIKELY", "NEED_MORE_INFORMATION"] },
+        "legalEvidence": { "type": "array", "items": { "$ref": "#/$defs/legalEvidence" } }
+      },
+      "additionalProperties": false
+    },
+    "riskLevel": {
+      "type": "object",
+      "required": ["value", "confidence", "basis", "requiresManualReview"],
+      "properties": {
+        "value": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "UNVERIFIED"] },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "basis": { "type": "string" },
+        "requiresManualReview": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "legalEvidence": {
+      "type": "object",
+      "required": ["evidenceId", "documentTitle", "standardNo", "clauseNo", "hierarchyPath", "contentRole", "content", "chunkId", "pageNo", "retrievalScore", "rerankScore"],
+      "properties": {
+        "evidenceId": { "type": ["string", "null"] },
+        "documentTitle": { "type": ["string", "null"] },
+        "standardNo": { "type": ["string", "null"] },
+        "clauseNo": { "type": ["string", "null"] },
+        "hierarchyPath": { "type": ["string", "null"] },
+        "contentRole": { "type": ["string", "null"] },
+        "content": { "type": ["string", "null"] },
+        "chunkId": { "type": ["string", "null"] },
+        "pageNo": { "type": ["integer", "null"] },
+        "retrievalScore": { "type": ["number", "null"] },
+        "rerankScore": { "type": ["number", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

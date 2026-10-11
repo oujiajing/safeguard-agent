@@ -1,0 +1,16 @@
+{
+  "summaryId": "summary-contract-1",
+  "orderId": "order-contract-1",
+  "orderVersion": 7,
+  "status": "DRAFT",
+  "sourceDigest": "sha256:summary-input-1",
+  "sections": [
+    { "key": "hazard", "title": "隐患概述", "content": "楼梯口临边缺少防护栏杆。", "sourceRefs": ["order.item.1"] },
+    { "key": "rectification", "title": "整改与验收", "content": "已补充防护栏杆，待验收人确认。", "sourceRefs": ["order.rectificationDescription", "order.acceptanceResult"] }
+  ],
+  "citations": ["order.item.1", "order.flow.3"],
+  "generationTrace": [
+    { "stage": "ASSEMBLE_FACTS", "message": "读取关闭工单的冻结事实", "executed": true },
+    { "stage": "GENERATE_DRAFT", "message": "生成总结草稿", "executed": true }
+  ]
+}
