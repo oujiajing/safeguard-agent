@@ -52,15 +52,15 @@ function Invoke-MavenTests {
 }
 
 function Invoke-StaticSuite {
-    Invoke-Step 'STATIC-MATRIX' 'Parse evaluation-matrix.json and verify referenced assets.' {
-        $matrixPath = Join-Path $repoRoot 'evaluation-matrix.json'
+    Invoke-Step 'STATIC-MATRIX' 'Parse the evaluation matrix and verify referenced source assets.' {
+        $matrixPath = Join-Path $repoRoot 'resources/evaluation/evaluation-matrix.json'
         $matrix = Get-Content -Raw -LiteralPath $matrixPath | ConvertFrom-Json
         if ($matrix.schemaVersion -ne 1) { throw 'Unsupported evaluation matrix schema.' }
         foreach ($asset in @($matrix.dataset.legalManifest, $matrix.dataset.visualManifest)) {
             if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $asset))) { throw "Missing asset: $asset" }
         }
         foreach ($baseline in $matrix.baselines.PSObject.Properties.Value) {
-            if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $baseline.report))) { throw "Missing baseline: $($baseline.report)" }
+            if ($baseline.report -notmatch '^outputs/') { throw "Baseline report must be a local output: $($baseline.report)" }
         }
     }
     Invoke-Step 'STATIC-PYTHON' 'Compile the legal evaluation runner.' {

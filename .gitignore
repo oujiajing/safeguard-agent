@@ -55,6 +55,7 @@ backups/
 **/__pycache__/
 *.py[cod]
 .output/
+outputs/
 
 ### Tmp Out ###
 .output/
